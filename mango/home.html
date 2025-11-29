@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+
+body {
+  height:100vh;
+  background:#000;
+  color:#fff;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  overflow-x:auto;
+  padding:20px;
+}
+
+.main-container {
+  display:flex;
+  align-items:center;
+  gap:60px;
+  flex-wrap: wrap;
+}
+
+.logo {
+  width:200px;
+  height:auto;
+  filter:grayscale(100%);
+  opacity:0.85;
+}
+
+.clock-container {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.clock {
+  font-size:4rem;
+  letter-spacing:2px;
+  font-weight:300;
+}
+
+.date {
+  font-size:1.2rem;
+  color:#aaa;
+  margin-top:8px;
+}
+
+.weather {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  background: rgba(255,255,255,0.05);
+  padding:20px 30px;
+  border-radius:20px;
+  box-shadow:0 0 20px rgba(255,255,255,0.05);
+  backdrop-filter: blur(5px);
+}
+
+.weather-icon {
+  font-size:4rem;
+  margin-bottom:10px;
+}
+
+.temperature {
+  font-size:2rem;
+  margin-bottom:5px;
+}
+
+.weather-desc {
+  font-size:1rem;
+  color:#ccc;
+  text-transform:capitalize;
+}
+
+.footer {
+  position:absolute;
+  bottom:15px;
+  font-size:0.9rem;
+  color:#555;
+  letter-spacing:1px;
+}
+
+@media (max-width:800px){
+  .main-container {
+    flex-direction:column;
+    gap:40px;
+  }
+  .clock { font-size:3rem; }
+  .temperature { font-size:1.5rem; }
+  .weather-icon { font-size:3rem; }
+}
+</style>
+</head>
+<body>
+  <h1>zodiac
+<div class="main-container">
+  <div class="clock-container">
+    <div class="clock" id="clock">--:--</div>
+    <div class="date" id="date">Loading date...</div>
+  </div>
+
+  <img src="https://zodiac-test-whoopsies.vercel.app/image/logo.gif" alt="ZODIAC Logo" class="logo">
+
+  <div class="weather" id="weather">
+    <div class="weather-icon" id="weather-icon"><i class="fas fa-sun"></i></div>
+    <div class="temperature" id="temperature">--°C</div>
+    <div class="weather-desc" id="weather-desc">Loading weather...</div>
+  </div>
+</div>
+
+
+<script>
+function updateClock(){
+  const now=new Date();
+  const hours=String(now.getHours()).padStart(2,'0');
+  const minutes=String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('clock').textContent=`${hours}:${minutes}`;
+
+  const options={ weekday:'long', year:'numeric', month:'long', day:'numeric' };
+  document.getElementById('date').textContent=now.toLocaleDateString(undefined, options);
+}
+setInterval(updateClock,1000);
+updateClock();
+
+function pseudoWeather(){
+  const now=new Date();
+  const hour=now.getHours();
+  let iconClass, temp, desc;
+
+  if(hour>=6 && hour<12){
+    iconClass="fas fa-sun";
+    temp="18°C";
+    desc="Morning clear";
+  }else if(hour>=12 && hour<18){
+    iconClass="fas fa-cloud-sun";
+    temp="24°C";
+    desc="Afternoon warm";
+  }else if(hour>=18 && hour<21){
+    iconClass="fas fa-cloud-moon";
+    temp="20°C";
+    desc="Evening cool";
+  }else{
+    iconClass="fas fa-moon";
+    temp="15°C";
+    desc="Night calm";
+  }
+
+  document.getElementById("weather-icon").innerHTML=`<i class="${iconClass}"></i>`;
+  document.getElementById("temperature").textContent=temp;
+  document.getElementById("weather-desc").textContent=desc;
+}
+setInterval(pseudoWeather,60000);
+pseudoWeather();
+</script>
+</body>
+</html>
