@@ -336,179 +336,210 @@
 
   <script src="https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js" defer></script>
 <script type="module" defer>
-import * as BareMux from "https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux/dist/index.mjs";
+  import * as BareMux from "https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux/dist/index.mjs";
 
-const { ScramjetController } = $scramjetLoadController();
-const scramjet = new ScramjetController({
+  const { ScramjetController } = $scramjetLoadController();
+  const scramjet = new ScramjetController({
     files: {
-        wasm: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/wasm.wasm",
-        all: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js",
-        sync: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.sync.js"
+      wasm: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/wasm.wasm",
+      all: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js",
+      sync: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.sync.js"
     }
-});
+  });
 
-try {
+  try {
     scramjet.init();
     navigator.serviceWorker.register("/sw.js");
-} catch (e) {
+  } catch (e) {
     console.error("scramjet failed to initialize;", e);
-}
+  }
 
-const connection = new BareMux.BareMuxConnection("/bareworker.js");
-let currentTransport = "epoxy";
-let isUrlInputFocused = false;
+  const connection = new BareMux.BareMuxConnection("/bareworker.js");
+  let currentTransport = "epoxy";
+  let isUrlInputFocused = false;
 
-const iframe = document.getElementById("iframe");
-const urlInput = document.getElementById("url");
-const statusText = document.getElementById("statusText");
-const currentUrlDisplay = document.getElementById("currentUrl");
-const loadingOverlay = document.getElementById("loadingOverlay");
+  const iframe = document.getElementById("iframe");
+  const urlInput = document.getElementById("url");
+  const currentUrlDisplay = document.getElementById("currentUrl");
+  const statusText = document.getElementById("statusText");
+  const loadingOverlay = document.getElementById("loadingOverlay");
 
-urlInput.addEventListener("focus", () => (isUrlInputFocused = true));
-urlInput.addEventListener("blur", () => (isUrlInputFocused = false));
+  urlInput.addEventListener("focus", () => (isUrlInputFocused = true));
+  urlInput.addEventListener("blur", () => (isUrlInputFocused = false));
 
-function extractRealUrl(src) {
+  /* ---------------- REAL URL DECODE ---------------- */
+  function extractRealUrl(scramjetUrl) {
     try {
-        if (!src.includes("/scramjet/")) return "";
-        return decodeURIComponent(src.split("/scramjet/")[1]);
-    } catch {
-        return "";
-    }
-}
+      if (scramjetUrl.includes("/scramjet/")) {
+        let enc = scramjetUrl.split("/scramjet/")[1];
+        return decodeURIComponent(enc);
+      }
+    } catch (e) {}
+    return scramjetUrl;
+  }
 
-let lastKnownUrl = "";
-let lastUpdateTime = 0;
-
-function updateUrlBar() {
-    const now = performance.now();
-    if (now - lastUpdateTime < 500) return;
-    lastUpdateTime = now;
+  /* ---------------- ALWAYS UPDATE URL BAR ---------------- */
+  function updateUrlBar() {
     if (isUrlInputFocused) return;
 
-    const src = iframe.src;
-    if (!src || src === "about:blank") {
-        urlInput.value = "";
-        currentUrlDisplay.textContent = "";
-        lastKnownUrl = "";
-        return;
+    const raw = iframe.src;
+
+    if (!raw || raw === "about:blank") {
+      urlInput.value = "";
+      currentUrlDisplay.textContent = "";
+      return;
     }
 
-    const decoded = extractRealUrl(src);
-    if (!decoded) return;
+    const real = extractRealUrl(raw);
 
-    if (decoded !== lastKnownUrl) {
-        lastKnownUrl = decoded;
-        urlInput.value = decoded;
-        currentUrlDisplay.textContent = decoded;
-    }
-}
+    urlInput.value = real;
+    currentUrlDisplay.textContent = real;
+  }
 
-document.getElementById("backBtn").onclick = () =>
-    iframe.contentWindow.history.back();
-
-document.getElementById("forwardBtn").onclick = () =>
-    iframe.contentWindow.history.forward();
-
-document.getElementById("reloadBtn").onclick = () =>
-    iframe.contentWindow.location.reload();
-
-document.getElementById("homeBtn").onclick = () => {
-    urlInput.value = "";
+  /* ---------------- Navigation Buttons ---------------- */
+  document.getElementById("backBtn").onclick = () => iframe.contentWindow.history.back();
+  document.getElementById("forwardBtn").onclick = () => iframe.contentWindow.history.forward();
+  document.getElementById("reloadBtn").onclick = () => iframe.contentWindow.location.reload();
+  document.getElementById("homeBtn").onclick = () => {
     iframe.src = "about:blank";
+    urlInput.value = "";
     currentUrlDisplay.textContent = "";
     statusText.textContent = "Ready";
-};
+  };
 
-document.getElementById("settingsBtn").onclick = () =>
+  /* ---------------- Settings ---------------- */
+  document.getElementById("settingsBtn").onclick = () =>
     document.getElementById("settingsPanel").classList.toggle("show");
 
-document.addEventListener("click", (e) => {
+  document.addEventListener("click", (e) => {
     const panel = document.getElementById("settingsPanel");
     const btn = document.getElementById("settingsBtn");
-    if (!panel.contains(e.target) && !btn.contains(e.target))
-        panel.classList.remove("show");
-});
 
-document.getElementById("epoxyBtn").onclick = async () => {
+    if (!panel.contains(e.target) && !btn.contains(e.target)) {
+      panel.classList.remove("show");
+    }
+  });
+
+  document.getElementById("epoxyBtn").onclick = async () => {
     currentTransport = "epoxy";
     epoxyBtn.classList.add("active");
     libcurlBtn.classList.remove("active");
     await setTransport("epoxy");
     statusText.textContent = "Transport: Epoxy";
-};
+  };
 
-document.getElementById("libcurlBtn").onclick = async () => {
+  document.getElementById("libcurlBtn").onclick = async () => {
     currentTransport = "libcurl";
     libcurlBtn.classList.add("active");
     epoxyBtn.classList.remove("active");
     await setTransport("libcurl");
     statusText.textContent = "Transport: LibCurl";
-};
+  };
 
-function getWispUrl() {
-    const v = document.getElementById("websocket").value.trim();
-    return v || "wss://gointospace.app/wisp/";
-}
+  function getWispUrl() {
+    const w = document.getElementById("websocket").value.trim();
+    return w || "wss://gointospace.app/wisp/";
+  }
 
-async function setTransport(mode) {
-    const wisp = getWispUrl();
-    if (mode === "epoxy")
-        await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs", [{ wisp }]);
-    else
-        await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/libcurl-transport/dist/index.mjs", [{ websocket: wisp }]);
-}
+  async function setTransport(t) {
+    const w = getWispUrl();
+    if (t === "epoxy")
+      return connection.setTransport(
+        "https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs",
+        [{ wisp: w }]
+      );
 
-document.getElementById("wisp").onsubmit = async (e) => {
+    if (t === "libcurl")
+      return connection.setTransport(
+        "https://cdn.jsdelivr.net/npm/@mercuryworkshop/libcurl-transport/dist/index.mjs",
+        [{ websocket: w }]
+      );
+  }
+
+  document.getElementById("wisp").onsubmit = async (e) => {
     e.preventDefault();
     await setTransport(currentTransport);
-    statusText.textContent = "Wisp Updated";
-    setTimeout(() => (statusText.textContent = "Ready"), 1500);
-};
+    statusText.textContent = "Wisp updated";
+    setTimeout(() => {
+      statusText.textContent = `Transport: ${currentTransport}`;
+    }, 2000);
+  };
 
-function searchQuery(input) {
-    const template = "https://ecosia.org/search?q=%s";
+  /* ---------------- URL Input / Search ---------------- */
+  function search(input) {
+    let template = "https://ecosia.org/search?q=%s";
+
     try {
-        return new URL(input).toString();
+      return new URL(input).toString();
     } catch {}
+
     try {
-        const u = new URL("http://" + input);
-        if (u.hostname.includes(".")) return u.toString();
+      let url = new URL(`http://${input}`);
+      if (url.hostname.includes(".")) return url.toString();
     } catch {}
+
     return template.replace("%s", encodeURIComponent(input));
-}
+  }
 
-setTransport("epoxy");
+  setTransport("epoxy");
 
-document.getElementById("search").onsubmit = (e) => {
-    e.preventDefault();
-    const raw = urlInput.value.trim();
-    if (!raw) return;
-
-    const finalUrl = searchQuery(raw);
-    const encoded = scramjet.encodeUrl(finalUrl);
+  document.getElementById("search").onsubmit = (event) => {
+    event.preventDefault();
+    const input = urlInput.value.trim();
+    if (!input) return;
 
     loadingOverlay.classList.add("show");
     statusText.textContent = "Loading...";
 
-    iframe.src = encoded;
-    currentUrlDisplay.textContent = finalUrl;
-    lastKnownUrl = finalUrl;
+    let fixed = search(input);
+    iframe.src = scramjet.encodeUrl(fixed);
+    currentUrlDisplay.textContent = fixed;
 
-    setTimeout(() => loadingOverlay.classList.remove("show"), 800);
-};
+    setTimeout(() => {
+      loadingOverlay.classList.remove("show");
+      statusText.textContent = "Connected";
+    }, 1000);
+  };
 
-iframe.addEventListener("load", () => {
+  /* ---------------- IFRAME LOAD = ALWAYS UPDATE URL ---------------- */
+  iframe.addEventListener("load", () => {
     loadingOverlay.classList.remove("show");
-    statusText.textContent = "Connected";
     updateUrlBar();
-});
+    statusText.textContent = "Connected";
 
-new MutationObserver(() => updateUrlBar()).observe(iframe, {
+    /* Try to hook same-origin navigation */
+    try {
+      const win = iframe.contentWindow;
+
+      /* Hook popstate + hashchange */
+      win.addEventListener("popstate", updateUrlBar);
+      win.addEventListener("hashchange", updateUrlBar);
+
+      /* Override pushState / replaceState */
+      const ps = win.history.pushState;
+      win.history.pushState = function () {
+        ps.apply(win.history, arguments);
+        updateUrlBar();
+      };
+
+      const rs = win.history.replaceState;
+      win.history.replaceState = function () {
+        rs.apply(win.history, arguments);
+        updateUrlBar();
+      };
+    } catch {
+      // cross-origin, safe to ignore
+    }
+  });
+
+  /* ---------------- Watch iframe.src mutations ---------------- */
+  new MutationObserver(() => updateUrlBar()).observe(iframe, {
     attributes: true,
     attributeFilter: ["src"]
-});
+  });
 
-setInterval(updateUrlBar, 500);
+  /* ---------------- Fallback interval (handles redirects) ---------------- */
+  setInterval(updateUrlBar, 500);
 </script>
 </body>
 </html>
