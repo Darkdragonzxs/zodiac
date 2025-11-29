@@ -225,7 +225,6 @@
       to { transform: rotate(360deg); }
     }
 
-    /* ❌ STATUS BAR REMOVED — NO CSS CHANGES MADE EXCEPT NOT INCLUDING IT */
   </style>
 </head>
 <body>
@@ -292,7 +291,7 @@
       console.error("scramjet failed to initialize;", e);
     }
     
-    document.getElementById("websocket").placeholder = `wss://${location.host}/wisp/`;
+    document.getElementById("websocket").placeholder = `wss://${location.host}/ww/w/`;
 
     const connection = new BareMux.BareMuxConnection("/bareworker.js");
     let currentTransport = "epoxy";
