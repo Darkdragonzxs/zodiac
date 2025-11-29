@@ -291,7 +291,7 @@
       console.error("scramjet failed to initialize;", e);
     }
     
-    document.getElementById("websocket").placeholder = `wss://${location.host}/ww/w/`;
+    document.getElementById("websocket").placeholder = `wss://${location.host}/ww/wisp/`;
 
     const connection = new BareMux.BareMuxConnection("/bareworker.js");
     let currentTransport = "epoxy";
