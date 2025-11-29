@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TinyJet Browser</title>
-  <!-- FontAwesome CDN -->
+  <title>ZODIAC</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <style>
     * {
@@ -21,14 +20,12 @@
       flex-direction: column;
       overflow: hidden;
     }
-    /* Browser Header */
     .browser-header {
       background: #2a2a2a;
       padding: 10px 15px;
       border-bottom: 1px solid #3a3a3a;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
     }
-    /* Navigation Controls */
     .nav-controls {
       display: flex;
       gap: 10px;
@@ -63,7 +60,6 @@
       opacity: 0.4;
       cursor: not-allowed;
     }
-    /* URL Bar Container */
     .url-bar-container {
       flex: 1;
       display: flex;
@@ -89,7 +85,6 @@
     .search-input::placeholder {
       color: #999;
     }
-    /* Settings Button */
     .settings-btn {
       background: #404040;
       border: 1px solid #555;
@@ -104,7 +99,6 @@
       background: #555;
       color: #fff;
     }
-    /* Settings Panel */
     .settings-panel {
       display: none;
       position: absolute;
@@ -124,9 +118,6 @@
     .settings-group {
       margin-bottom: 15px;
     }
-    .settings-group:last-child {
-      margin-bottom: 0;
-    }
     .settings-label {
       display: block;
       margin-bottom: 8px;
@@ -144,11 +135,6 @@
       padding: 10px 12px;
       border-radius: 6px;
       font-size: 13px;
-      transition: border-color 0.2s ease;
-    }
-    .settings-input:focus {
-      outline: none;
-      border-color: #777;
     }
     .settings-input::placeholder {
       color: #888;
@@ -167,11 +153,11 @@
       border-radius: 6px;
       cursor: pointer;
       font-size: 13px;
-      transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
+      transition: all 0.2s ease;
     }
     .transport-btn:hover {
       background: #4a4a4a;
@@ -183,7 +169,6 @@
       color: #1a1a1a;
       font-weight: 600;
     }
-    /* Iframe Container */
     .iframe-container {
       flex: 1;
       position: relative;
@@ -197,7 +182,6 @@
       width: 100%;
       height: 100%;
     }
-    /* Loading Overlay */
     .loading-overlay {
       position: absolute;
       top: 0;
@@ -224,39 +208,35 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-
   </style>
 </head>
 <body>
   <div class="browser-header">
     <div class="nav-controls">
-      <button class="nav-btn" id="backBtn" title="Back"><i class="fas fa-arrow-left"></i></button>
-      <button class="nav-btn" id="forwardBtn" title="Forward"><i class="fas fa-arrow-right"></i></button>
-      <button class="nav-btn" id="reloadBtn" title="Reload"><i class="fas fa-sync-alt"></i></button>
-      <button class="nav-btn" id="homeBtn" title="Home"><i class="fas fa-home"></i></button>
-
+      <button class="nav-btn" id="backBtn"><i class="fas fa-arrow-left"></i></button>
+      <button class="nav-btn" id="forwardBtn"><i class="fas fa-arrow-right"></i></button>
+      <button class="nav-btn" id="reloadBtn"><i class="fas fa-sync-alt"></i></button>
+      <button class="nav-btn" id="homeBtn"><i class="fas fa-home"></i></button>
       <div class="url-bar-container">
         <form id="search" style="flex: 1; display: flex;">
           <input id="url" type="text" class="search-input" placeholder="Search the web or enter URL">
         </form>
       </div>
-
-      <button class="settings-btn" id="settingsBtn" title="Settings"><i class="fas fa-cogs"></i></button>
+      <button class="settings-btn" id="settingsBtn"><i class="fas fa-cogs"></i></button>
     </div>
 
     <div class="settings-panel" id="settingsPanel">
       <div class="settings-group">
         <label class="settings-label">Wisp Server</label>
         <form id="wisp" onsubmit="return false;">
-          <input id="websocket" type="text" class="settings-input" value="" placeholder="">
+          <input id="websocket" type="text" class="settings-input" placeholder="">
         </form>
       </div>
-
       <div class="settings-group">
         <label class="settings-label">Transport Type</label>
         <div class="transport-select">
-          <button class="transport-btn active" id="epoxyBtn"><i class="fas fa-plug"></i> Epoxy</button>
-          <button class="transport-btn" id="libcurlBtn"><i class="fas fa-cube"></i> LibCurl</button>
+          <button class="transport-btn" id="epoxyBtn"><i class="fas fa-plug"></i> Epoxy</button>
+          <button class="transport-btn active" id="libcurlBtn"><i class="fas fa-cube"></i> LibCurl</button>
         </div>
       </div>
     </div>
@@ -266,10 +246,8 @@
     <div class="loading-overlay" id="loadingOverlay">
       <div class="spinner"></div>
     </div>
-    <iframe id="iframe" width="100%" height="100%"></iframe>
+    <iframe id="iframe"></iframe>
   </div>
-
-  <!-- ❌ STATUS BAR REMOVED -->
 
   <script src="https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js"></script>
   <script type="module">
@@ -288,41 +266,30 @@
       scramjet.init();
       navigator.serviceWorker.register("/sw.js");
     } catch (e) {
-      console.error("scramjet failed to initialize;", e);
+      console.error(e);
     }
-    
+
     document.getElementById("websocket").placeholder = `wss://${location.host}/ww/wisp/`;
 
     const connection = new BareMux.BareMuxConnection("/bareworker.js");
-    let currentTransport = "epoxy";
+    let currentTransport = "libcurl";
     let isUrlInputFocused = false;
     let currentTargetUrl = "";
 
     const iframe = document.getElementById("iframe");
     const urlInput = document.getElementById("url");
-
     const loadingOverlay = document.getElementById("loadingOverlay");
 
-    setTimeout(() => {
-      iframe.src = "/home.html";
-    }, 100);
+    setTimeout(() => iframe.src = "/home.html", 100);
 
-    urlInput.addEventListener("focus", () => {
-      isUrlInputFocused = true;
-    });
-
-    urlInput.addEventListener("blur", () => {
-      isUrlInputFocused = false;
-    });
+    urlInput.addEventListener("focus", () => isUrlInputFocused = true);
+    urlInput.addEventListener("blur", () => isUrlInputFocused = false);
 
     function updateUrlBar() {
       if (isUrlInputFocused) return;
-
-      if (currentTargetUrl) {
-        urlInput.value = currentTargetUrl;
-      } else if (iframe.src.endsWith('/home.html') || !iframe.src || iframe.src === 'about:blank') {
-        urlInput.value = '';
-      }
+      if (currentTargetUrl) urlInput.value = currentTargetUrl;
+      else if (iframe.src.endsWith("/home.html") || iframe.src === "" || iframe.src === "about:blank")
+        urlInput.value = "";
     }
 
     document.getElementById("backBtn").addEventListener("click", () => {
@@ -357,9 +324,8 @@
     document.addEventListener("click", (e) => {
       const panel = document.getElementById("settingsPanel");
       const settingsBtn = document.getElementById("settingsBtn");
-      if (!panel.contains(e.target) && e.target !== settingsBtn && !settingsBtn.contains(e.target)) {
+      if (!panel.contains(e.target) && e.target !== settingsBtn && !settingsBtn.contains(e.target))
         panel.classList.remove("show");
-      }
     });
 
     document.getElementById("epoxyBtn").addEventListener("click", async () => {
@@ -376,88 +342,73 @@
       await setTransport("libcurl");
     });
 
-    /* ✅ DYNAMIC WISP URL APPLIED */
     function getWispUrl() {
-      const userVal = document.getElementById("websocket").value.trim();
-      const dynamic = `wss://${location.host}/wisp/`;
-      return userVal || dynamic;
+      const val = document.getElementById("websocket").value.trim();
+      const d = `wss://${location.host}/wisp/`;
+      return val || d;
     }
 
-    async function setTransport(transportsel) {
+    async function setTransport(type) {
       const wispUrl = getWispUrl();
-      switch (transportsel) {
-        case "epoxy":
-          await connection.setTransport(
-            "https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs",
-            [{ wisp: wispUrl }]
-          );
-          break;
-        case "libcurl":
-          await connection.setTransport(
-            "https://cdn.jsdelivr.net/npm/@mercuryworkshop/libcurl-transport/dist/index.mjs",
-            [{ websocket: wispUrl }]
-          );
-          break;
+      if (type === "epoxy") {
+        await connection.setTransport(
+          "https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs",
+          [{ wisp: wispUrl }]
+        );
+      } else {
+        await connection.setTransport(
+          "https://cdn.jsdelivr.net/npm/@mercuryworkshop/libcurl-transport/dist/index.mjs",
+          [{ websocket: wispUrl }]
+        );
       }
     }
 
-    document.getElementById("wisp").addEventListener("submit", async (event) => {
-      event.preventDefault();
+    document.getElementById("wisp").addEventListener("submit", async (e) => {
+      e.preventDefault();
       await setTransport(currentTransport);
     });
 
     function search(input) {
       let template = "https://ecosia.org/search?q=%s";
-
-      try {
-        return new URL(input).toString();
-      } catch (err) {}
-
+      try { return new URL(input).toString(); } catch {}
       try {
         let url = new URL(`http://${input}`);
         if (url.hostname.includes(".")) return url.toString();
-      } catch (err) {}
-
+      } catch {}
       return template.replace("%s", encodeURIComponent(input));
     }
 
-    setTransport("epoxy");
+    setTransport("libcurl");
 
-    document.getElementById("search").addEventListener("submit", async (event) => {
-      event.preventDefault();
+    document.getElementById("search").addEventListener("submit", async (e) => {
+      e.preventDefault();
       const input = urlInput.value.trim();
       if (!input) return;
 
       loadingOverlay.classList.add("show");
 
-      let fixedurl = search(input);
-      currentTargetUrl = fixedurl;
+      let fixed = search(input);
+      currentTargetUrl = fixed;
 
-      let src = scramjet.encodeUrl(fixedurl);
-      iframe.src = src;
-
+      iframe.src = scramjet.encodeUrl(fixed);
       urlInput.value = currentTargetUrl;
 
-      setTimeout(() => {
-        loadingOverlay.classList.remove("show");
-      }, 1000);
+      setTimeout(() => loadingOverlay.classList.remove("show"), 1000);
     });
 
     iframe.addEventListener("load", () => {
       loadingOverlay.classList.remove("show");
-
-      if (iframe.src.endsWith('/home.html')) {
+      if (iframe.src.endsWith("/home.html")) {
         currentTargetUrl = "";
         updateUrlBar();
-      } else if (iframe.src && iframe.src !== "about:blank") {
+      } else {
         updateUrlBar();
       }
     });
 
     setInterval(() => {
-      if (!isUrlInputFocused && currentTargetUrl && urlInput.value !== currentTargetUrl) {
+      if (!isUrlInputFocused && currentTargetUrl && urlInput.value !== currentTargetUrl)
         updateUrlBar();
-      }
     }, 1000);
   </script>
 </body>
