@@ -23,44 +23,6 @@
       overflow: hidden;
     }
 
-    /* Tab Navigation */
-    .tab-nav {
-      display: flex;
-      background-color: #2a2a2a;
-      border-bottom: 1px solid #3a3a3a;
-    }
-
-    .tab-btn {
-      padding: 10px 15px;
-      border: none;
-      background: #3a3a3a;
-      color: #b0b0b0;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background-color 0.3s ease;
-    }
-
-    .tab-btn.active {
-      background: #5a5aff;
-      color: #fff;
-    }
-
-    .tab-btn:hover {
-      background: #4a4a4a;
-    }
-
-    /* Tab Content */
-    .tab-content {
-      display: none;
-      padding: 20px;
-      background: #2d2d2d;
-      flex: 1;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
     /* Browser Header */
     .browser-header {
       background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
@@ -137,6 +99,7 @@
       color: #808080;
     }
 
+    /* Settings Button */
     .settings-btn {
       background: #3a3a3a;
       border: 1px solid #4a4a4a;
@@ -153,6 +116,7 @@
       color: #fff;
     }
 
+    /* Settings Panel */
     .settings-panel {
       display: none;
       position: absolute;
@@ -228,6 +192,7 @@
       color: #fff;
     }
 
+    /* Iframe Container */
     .iframe-container {
       flex: 1;
       position: relative;
@@ -243,6 +208,7 @@
       height: 100%;
     }
 
+    /* Loading Overlay */
     .loading-overlay {
       position: absolute;
       top: 0;
@@ -273,6 +239,7 @@
       to { transform: rotate(360deg); }
     }
 
+    /* Status Bar */
     .status-bar {
       background: #1f1f1f;
       padding: 4px 15px;
@@ -303,11 +270,12 @@
       50% { opacity: 0.5; }
     }
 
+    /* Responsive Design */
     @media (max-width: 600px) {
       .nav-controls {
         flex-wrap: wrap;
       }
-
+      
       .settings-panel {
         left: 15px;
         right: 15px;
@@ -317,52 +285,22 @@
   </style>
 </head>
 <body>
-  <div class="tab-nav">
-    <button class="tab-btn active" id="homeTab">Home</button>
-    <button class="tab-btn" id="browserTab">Browser</button>
-    <button class="tab-btn" id="settingsTab">Settings</button>
-  </div>
-
-  <div class="tab-content active" id="homeContent">
-    <h1>Welcome to TinyJet Browser</h1>
-    <p>This is your home screen.</p>
-  </div>
-
-  <div class="tab-content" id="browserContent">
-    <div class="browser-header">
-      <div class="nav-controls">
-        <button class="nav-btn" id="backBtn" title="Back">←</button>
-        <button class="nav-btn" id="forwardBtn" title="Forward">→</button>
-        <button class="nav-btn" id="reloadBtn" title="Reload">↻</button>
-        <button class="nav-btn" id="homeBtn" title="Home">⌂</button>
-
-        <div class="url-bar-container">
-          <form id="search" style="flex: 1; display: flex;">
-            <input id="url" type="text" class="search-input" placeholder="Search the web or enter URL">
-          </form>
-        </div>
-
-        <button class="settings-btn" id="settingsBtn" title="Settings"><i class="fas fa-cogs"></i></button>
+  <div class="browser-header">
+    <div class="nav-controls">
+      <button class="nav-btn" id="backBtn" title="Back"><i class="fas fa-arrow-left"></i></button>
+      <button class="nav-btn" id="forwardBtn" title="Forward"><i class="fas fa-arrow-right"></i></button>
+      <button class="nav-btn" id="reloadBtn" title="Reload"><i class="fas fa-sync-alt"></i></button>
+      <button class="nav-btn" id="homeBtn" title="Home"><i class="fas fa-home"></i></button>
+      
+      <div class="url-bar-container">
+        <form id="search" style="flex: 1; display: flex;">
+          <input id="url" type="text" class="search-input" placeholder="Search the web or enter URL">
+        </form>
       </div>
+      
+      <button class="settings-btn" id="settingsBtn" title="Settings"><i class="fas fa-cogs"></i></button>
     </div>
     
-    <div class="iframe-container">
-      <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-      </div>
-      <iframe id="iframe" width="100%" height="100%"></iframe>
-    </div>
-    
-    <div class="status-bar">
-      <div class="status-indicator">
-        <div class="status-dot"></div>
-        <span id="statusText">Ready</span>
-      </div>
-      <div id="currentUrl"></div>
-    </div>
-  </div>
-
-  <div class="tab-content" id="settingsContent">
     <div class="settings-panel" id="settingsPanel">
       <div class="settings-group">
         <label class="settings-label">Wisp Server</label>
@@ -380,51 +318,88 @@
       </div>
     </div>
   </div>
+  
+  <div class="iframe-container">
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="spinner"></div>
+    </div>
+    <iframe id="iframe" width="100%" height="100%"></iframe>
+  </div>
+  
+  <div class="status-bar">
+    <div class="status-indicator">
+      <div class="status-dot"></div>
+      <span id="statusText">Ready</span>
+    </div>
+    <div id="currentUrl"></div>
+  </div>
 
-  <script>
-    const tabs = document.querySelectorAll('.tab-btn');
-    const contents = document.querySelectorAll('.tab-content');
-
-    tabs.forEach((tab) => {
-      tab.addEventListener('click', () => {
-        tabs.forEach((btn) => btn.classList.remove('active'));
-        tab.classList.add('active');
-
-        contents.forEach((content) => content.classList.remove('active'));
-        document.getElementById(`${tab.id.replace('Tab', 'Content')}`).classList.add('active');
-      });
+  <script src="https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js" defer></script>
+  <script type="module" defer>
+    import * as BareMux from "https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux/dist/index.mjs";
+    
+    const { ScramjetController } = $scramjetLoadController();
+    const scramjet = new ScramjetController({ 
+      files: { 
+        wasm: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/wasm.wasm", 
+        all: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js", 
+        sync: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.sync.js" 
+      } 
     });
-
+    
+    try {
+      scramjet.init();
+      navigator.serviceWorker.register("/sw.js");
+    } catch (e) { 
+      console.error("scramjet failed to initialize;", e); 
+    }
+    
+    const connection = new BareMux.BareMuxConnection("/bareworker.js");
+    let currentTransport = "epoxy";
+    
+    // UI Elements
     const iframe = document.getElementById("iframe");
     const urlInput = document.getElementById("url");
     const statusText = document.getElementById("statusText");
     const currentUrlDisplay = document.getElementById("currentUrl");
     const loadingOverlay = document.getElementById("loadingOverlay");
-
+    
+    // Navigation functions
     document.getElementById("backBtn").addEventListener("click", () => {
       iframe.contentWindow.history.back();
     });
-
+    
     document.getElementById("forwardBtn").addEventListener("click", () => {
       iframe.contentWindow.history.forward();
     });
-
+    
     document.getElementById("reloadBtn").addEventListener("click", () => {
       iframe.contentWindow.location.reload();
     });
-
+    
     document.getElementById("homeBtn").addEventListener("click", () => {
       urlInput.value = "";
       iframe.src = "about:blank";
       currentUrlDisplay.textContent = "";
       statusText.textContent = "Ready";
     });
-
+    
+    // Settings toggle
     document.getElementById("settingsBtn").addEventListener("click", () => {
       const panel = document.getElementById("settingsPanel");
       panel.classList.toggle("show");
     });
-
+    
+    // Close settings when clicking outside
+    document.addEventListener("click", (e) => {
+      const panel = document.getElementById("settingsPanel");
+      const settingsBtn = document.getElementById("settingsBtn");
+      if (!panel.contains(e.target) && e.target !== settingsBtn) {
+        panel.classList.remove("show");
+      }
+    });
+    
+    // Transport selection
     document.getElementById("epoxyBtn").addEventListener("click", async () => {
       currentTransport = "epoxy";
       document.getElementById("epoxyBtn").classList.add("active");
@@ -432,7 +407,7 @@
       await setTransport("epoxy");
       statusText.textContent = "Transport: Epoxy";
     });
-
+    
     document.getElementById("libcurlBtn").addEventListener("click", async () => {
       currentTransport = "libcurl";
       document.getElementById("libcurlBtn").classList.add("active");
@@ -440,27 +415,83 @@
       await setTransport("libcurl");
       statusText.textContent = "Transport: LibCurl";
     });
-
+    
+    // Wisp configuration
     function getWispUrl() {
       const wisp = document.getElementById("websocket").value.trim();
       const defaultWisp = "wss://gointospace.app/wisp/";
       return wisp || defaultWisp;
     }
     
+    async function setTransport(transportsel) {
+      const wispUrl = getWispUrl();
+      switch (transportsel) {
+        case "epoxy":
+          await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs", [{ wisp: wispUrl }]);
+          break;
+        case "libcurl":
+          await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/libcurl-transport/dist/index.mjs", [{ websocket: wispUrl }]);
+          break;
+        default:
+          await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs", [{ wisp: wispUrl }]);
+          break;
+      }
+    }
+    
+    document.getElementById("wisp").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      await setTransport(currentTransport);
+      statusText.textContent = "Wisp server updated";
+      setTimeout(() => {
+        statusText.textContent = `Transport: ${currentTransport === "epoxy" ? "Epoxy" : "LibCurl"}`;
+      }, 2000);
+    });
+    
     function search(input) {
       let template = "https://search.brave.com/search?q=%s";
-
+      
       try {
         return new URL(input).toString();
       } catch (err) {}
-
+      
       try {
         let url = new URL(`http://${input}`);
         if (url.hostname.includes(".")) return url.toString();
       } catch (err) {}
-
+      
       return template.replace("%s", encodeURIComponent(input)); 
     }
+    
+    setTransport("epoxy");
+    
+    document.getElementById("search").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const input = urlInput.value.trim();
+      if (!input) return;
+      
+      loadingOverlay.classList.add("show");
+      statusText.textContent = "Loading...";
+      
+      let fixedurl = search(input);
+      let src = scramjet.encodeUrl(fixedurl);
+      iframe.src = src;
+      
+      currentUrlDisplay.textContent = fixedurl;
+      
+      // Hide loading overlay after a delay
+      setTimeout(() => {
+        loadingOverlay.classList.remove("show");
+        statusText.textContent = "Connected";
+      }, 1000);
+    });
+    
+    // Listen for iframe load events
+    iframe.addEventListener("load", () => {
+      loadingOverlay.classList.remove("show");
+      if (iframe.src && iframe.src !== "about:blank") {
+        statusText.textContent = "Connected";
+      }
+    });
   </script>
 </body>
 </html>
