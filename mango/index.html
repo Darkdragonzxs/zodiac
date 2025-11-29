@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TinyJet Browser</title>
+  <title>ZODIAC</title>
   <!-- FontAwesome CDN -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <style>
@@ -288,7 +288,7 @@
     <div class="loading-overlay" id="loadingOverlay">
       <div class="spinner"></div>
     </div>
-    <iframe id="iframe" width="100%" height="100%"></iframe>
+    <iframe id="iframe" width="100%" height="100%" src="/home.html"></iframe>
   </div>
 
   <div class="status-bar">
@@ -343,7 +343,7 @@
     // Enhanced function to extract and decode URL from Scramjet URL
     function extractRealUrl(scramjetUrl) {
       try {
-        if (!scramjetUrl || scramjetUrl === 'about:blank') {
+        if (!scramjetUrl || scramjetUrl === 'about:blank' || scramjetUrl.endsWith('/home.html')) {
           return '';
         }
 
@@ -376,7 +376,7 @@
           return scramjetUrl;
         }
       } catch (e) {
-        console.error('[v0] Error extracting URL:', e);
+        console.error('Error extracting URL:', e);
       }
       return '';
     }
@@ -391,16 +391,15 @@
       try {
         const iframeSrc = iframe.src;
         
-        if (iframeSrc && iframeSrc !== 'about:blank') {
+        if (iframeSrc && iframeSrc !== 'about:blank' && !iframeSrc.endsWith('/home.html')) {
           const realUrl = extractRealUrl(iframeSrc);
           
           if (realUrl && realUrl !== lastKnownUrl) {
             lastKnownUrl = realUrl;
             urlInput.value = realUrl;
             currentUrlDisplay.textContent = realUrl;
-            console.log('[v0] URL updated to:', realUrl);
           }
-        } else if (iframeSrc === 'about:blank' || !iframeSrc) {
+        } else if (iframeSrc === 'about:blank' || !iframeSrc || iframeSrc.endsWith('/home.html')) {
           if (lastKnownUrl !== '') {
             lastKnownUrl = '';
             urlInput.value = '';
@@ -408,7 +407,7 @@
           }
         }
       } catch (e) {
-        console.error('[v0] Error updating URL bar:', e);
+        console.error('Error updating URL bar:', e);
       }
     }
 
@@ -434,7 +433,7 @@
 
     document.getElementById("homeBtn").addEventListener("click", () => {
       urlInput.value = "";
-      iframe.src = "about:blank";
+      iframe.src = "/home.html";
       currentUrlDisplay.textContent = "";
       statusText.textContent = "Ready";
       lastKnownUrl = "";
@@ -549,10 +548,12 @@
     // Enhanced iframe load event listener
     iframe.addEventListener("load", () => {
       loadingOverlay.classList.remove("show");
-      if (iframe.src && iframe.src !== "about:blank") {
+      if (iframe.src && iframe.src !== "about:blank" && !iframe.src.endsWith('/home.html')) {
         statusText.textContent = "Connected";
         // Force update URL bar when iframe loads
         setTimeout(updateUrlBar, 100);
+      } else if (iframe.src.endsWith('/home.html')) {
+        statusText.textContent = "Ready";
       }
     });
 
@@ -560,7 +561,6 @@
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
-          console.log('[v0] Iframe src changed, updating URL bar');
           setTimeout(updateUrlBar, 100);
         }
       });
@@ -574,25 +574,22 @@
 
     // Aggressive URL checking - checks multiple times per second
     let urlCheckInterval = setInterval(() => {
-      if (!isUrlInputFocused && iframe.src && iframe.src !== 'about:blank') {
+      if (!isUrlInputFocused && iframe.src && iframe.src !== 'about:blank' && !iframe.src.endsWith('/home.html')) {
         updateUrlBar();
       }
-    }, 500); // Check every 500ms for more responsive updates
+    }, 500);
 
     // Additional fallback check
     setInterval(() => {
-      if (!isUrlInputFocused && iframe.src) {
+      if (!isUrlInputFocused && iframe.src && !iframe.src.endsWith('/home.html')) {
         const currentDisplayedUrl = urlInput.value;
         const actualUrl = extractRealUrl(iframe.src);
         
         if (actualUrl && actualUrl !== currentDisplayedUrl && actualUrl !== '') {
-          console.log('[v0] URL mismatch detected, forcing update');
           updateUrlBar();
         }
       }
-    }, 1500); // Secondary check every 1.5 seconds
-
-    console.log('[v0] TinyJet Browser initialized with enhanced URL tracking');
+    }, 1500);
   </script>
 </body>
 </html>
