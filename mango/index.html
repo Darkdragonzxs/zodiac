@@ -335,185 +335,260 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js" defer></script>
-<script type="module">
-  import * as BareMux from "https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux/dist/index.mjs";
-  
-  const { ScramjetController } = $scramjetLoadController();
-  const scramjet = new ScramjetController({ 
-    files: { 
-      wasm: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/wasm.wasm", 
-      all: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js", 
-      sync: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.sync.js" 
-    } 
-  });
-  
-  try {
-    scramjet.init();
-    navigator.serviceWorker.register("/sw.js");
-  } catch (e) { 
-    console.error("scramjet failed to initialize;", e); 
-  }
-  
-  const connection = new BareMux.BareMuxConnection("/bareworker.js");
-  let currentTransport = "epoxy";
-  
-  // UI Elements
-  const iframe = document.getElementById("iframe");
-  const urlInput = document.getElementById("url");
-  const statusText = document.getElementById("statusText");
-  const currentUrlDisplay = document.getElementById("currentUrl");
-  const loadingOverlay = document.getElementById("loadingOverlay");
-  
-  // Navigation functions
-  document.getElementById("backBtn").addEventListener("click", () => {
-    iframe.contentWindow.history.back();
-  });
-  
-  document.getElementById("forwardBtn").addEventListener("click", () => {
-    iframe.contentWindow.history.forward();
-  });
-  
-  document.getElementById("reloadBtn").addEventListener("click", () => {
-    iframe.contentWindow.location.reload();
-  });
-  
-  document.getElementById("homeBtn").addEventListener("click", () => {
-    urlInput.value = "";
-    iframe.src = "about:blank";
-    currentUrlDisplay.textContent = "";
-    statusText.textContent = "Ready";
-  });
-  
-  // Settings toggle
-  document.getElementById("settingsBtn").addEventListener("click", () => {
-    const panel = document.getElementById("settingsPanel");
-    panel.classList.toggle("show");
-  });
-  
-  // Close settings when clicking outside
-  document.addEventListener("click", (e) => {
-    const panel = document.getElementById("settingsPanel");
-    const settingsBtn = document.getElementById("settingsBtn");
-    if (!panel.contains(e.target) && e.target !== settingsBtn) {
-      panel.classList.remove("show");
+  <script type="module" defer>
+    import * as BareMux from "https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux/dist/index.mjs";
+    
+    const { ScramjetController } = $scramjetLoadController();
+    const scramjet = new ScramjetController({ 
+      files: { 
+        wasm: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/wasm.wasm", 
+        all: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js", 
+        sync: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.sync.js" 
+      } 
+    });
+    
+    try {
+      scramjet.init();
+      navigator.serviceWorker.register("/sw.js");
+    } catch (e) { 
+      console.error("scramjet failed to initialize;", e); 
     }
-  });
-  
-  // Transport selection
-  document.getElementById("epoxyBtn").addEventListener("click", async () => {
-    currentTransport = "epoxy";
-    document.getElementById("epoxyBtn").classList.add("active");
-    document.getElementById("libcurlBtn").classList.remove("active");
-    await setTransport("epoxy");
-    statusText.textContent = "Transport: Epoxy";
-  });
-  
-  document.getElementById("libcurlBtn").addEventListener("click", async () => {
-    currentTransport = "libcurl";
-    document.getElementById("libcurlBtn").classList.add("active");
-    document.getElementById("epoxyBtn").classList.remove("active");
-    await setTransport("libcurl");
-    statusText.textContent = "Transport: LibCurl";
-  });
-  
-  // Wisp configuration
-  function getWispUrl() {
-    const wisp = document.getElementById("websocket").value.trim();
-    const defaultWisp = "wss://gointospace.app/wisp/";
-    return wisp || defaultWisp;
-  }
-  
-  async function setTransport(transportsel) {
-    const wispUrl = getWispUrl();
-    switch (transportsel) {
-      case "epoxy":
-        await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs", [{ wisp: wispUrl }]);
-        break;
-      case "libcurl":
-        await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/libcurl-transport/dist/index.mjs", [{ websocket: wispUrl }]);
-        break;
-      default:
-        await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs", [{ wisp: wispUrl }]);
-        break;
-    }
-  }
-  
-  document.getElementById("wisp").addEventListener("submit", async (event) => {
-    event.preventDefault();
-    await setTransport(currentTransport);
-    statusText.textContent = "Wisp server updated";
-    setTimeout(() => {
-      statusText.textContent = `Transport: ${currentTransport === "epoxy" ? "Epoxy" : "LibCurl"}`;
-    }, 2000);
-  });
-  
-  function search(input) {
-    let template = "https://search.brave.com/search?q=%s";
     
-    try {
-      return new URL(input).toString();
-    } catch (err) {}
+    const connection = new BareMux.BareMuxConnection("/bareworker.js");
+    let currentTransport = "epoxy";
     
-    try {
-      let url = new URL(`http://${input}`);
-      if (url.hostname.includes(".")) return url.toString();
-    } catch (err) {}
+    // UI Elements
+    const iframe = document.getElementById("iframe");
+    const urlInput = document.getElementById("url");
+    const statusText = document.getElementById("statusText");
+    const currentUrlDisplay = document.getElementById("currentUrl");
+    const loadingOverlay = document.getElementById("loadingOverlay");
     
-    return template.replace("%s", encodeURIComponent(input)); 
-  }
-  
-  document.getElementById("search").addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const input = urlInput.value.trim();
-    if (!input) return;
-
-    loadingOverlay.classList.add("show");
-    statusText.textContent = "Loading...";
-
-    // Get the URL as the user intends (e.g., google.com, or a search query)
-    let fixedurl = search(input);
-
-    // If we need to encode it in Scramjet format
-    let encodedUrl = scramjet.encodeUrl(fixedurl);
-    
-    // Update the iframe with the encoded URL
-    iframe.src = encodedUrl;
-
-    // Now extract the original URL (decoded) to show in the address bar
-    currentUrlDisplay.textContent = fixedurl;  // Show the original URL in the address bar
-
-    // Hide loading overlay after a delay
-    setTimeout(() => {
-      loadingOverlay.classList.remove("show");
-      statusText.textContent = "Connected";
-    }, 1000);
-  });
-  
-  iframe.addEventListener("load", () => {
-    loadingOverlay.classList.remove("show");
-
-    // When the iframe loads, update the current URL to reflect the actual URL in the address bar
-    const iframeUrl = iframe.contentWindow.location.href;
-
-    // We need to decode the URL from the iframe's src (if it is encoded in Scramjet format)
-    try {
-      if (iframeUrl.startsWith("/scramjet/")) {
-        const decodedUrl = decodeURIComponent(iframeUrl.replace("/scramjet/", ""));
-        currentUrlDisplay.textContent = decodedUrl;  // Update the address bar to show the decoded URL
-      } else {
-        currentUrlDisplay.textContent = iframeUrl;  // Show the actual iframe URL if it's not encoded
+    // Function to extract and decode URL from Scramjet URL
+    function extractRealUrl(scramjetUrl) {
+      try {
+        // Check if this is a scramjet URL
+        if (scramjetUrl.includes('/scramjet/')) {
+          // Split by /scramjet/ and get the encoded part
+          const parts = scramjetUrl.split('/scramjet/');
+          if (parts.length > 1) {
+            // Decode the URL component
+            const encodedUrl = parts[1];
+            const decodedUrl = decodeURIComponent(encodedUrl);
+            return decodedUrl;
+          }
+        }
+      } catch (e) {
+        console.error('Error extracting URL:', e);
       }
-    } catch (error) {
-      console.error("Error decoding URL: ", error);
+      return '';
     }
-
-    if (iframe.src && iframe.src !== "about:blank") {
-      statusText.textContent = "Connected";
+    
+    // Function to update URL bar based on iframe src
+    function updateUrlBar() {
+      try {
+        const iframeSrc = iframe.src;
+        if (iframeSrc && iframeSrc !== 'about:blank') {
+          const realUrl = extractRealUrl(iframeSrc);
+          if (realUrl) {
+            urlInput.value = realUrl;
+            currentUrlDisplay.textContent = realUrl;
+          }
+        } else if (iframeSrc === 'about:blank' || !iframeSrc) {
+          urlInput.value = '';
+          currentUrlDisplay.textContent = '';
+        }
+      } catch (e) {
+        console.error('Error updating URL bar:', e);
+      }
     }
-  });
-  
-  // Initialize transport with default settings
-  setTransport("epoxy");
-</script>
+    
+    // Navigation functions
+    document.getElementById("backBtn").addEventListener("click", () => {
+      iframe.contentWindow.history.back();
+    });
+    
+    document.getElementById("forwardBtn").addEventListener("click", () => {
+      iframe.contentWindow.history.forward();
+    });
+    
+    document.getElementById("reloadBtn").addEventListener("click", () => {
+      iframe.contentWindow.location.reload();
+    });
+    
+    document.getElementById("homeBtn").addEventListener("click", () => {
+      urlInput.value = "";
+      iframe.src = "about:blank";
+      currentUrlDisplay.textContent = "";
+      statusText.textContent = "Ready";
+    });
+    
+    // Settings toggle
+    document.getElementById("settingsBtn").addEventListener("click", () => {
+      const panel = document.getElementById("settingsPanel");
+      panel.classList.toggle("show");
+    });
+    
+    // Close settings when clicking outside
+    document.addEventListener("click", (e) => {
+      const panel = document.getElementById("settingsPanel");
+      const settingsBtn = document.getElementById("settingsBtn");
+      if (!panel.contains(e.target) && e.target !== settingsBtn && !settingsBtn.contains(e.target)) {
+        panel.classList.remove("show");
+      }
+    });
+    
+    // Transport selection
+    document.getElementById("epoxyBtn").addEventListener("click", async () => {
+      currentTransport = "epoxy";
+      document.getElementById("epoxyBtn").classList.add("active");
+      document.getElementById("libcurlBtn").classList.remove("active");
+      await setTransport("epoxy");
+      statusText.textContent = "Transport: Epoxy";
+    });
+    
+    document.getElementById("libcurlBtn").addEventListener("click", async () => {
+      currentTransport = "libcurl";
+      document.getElementById("libcurlBtn").classList.add("active");
+      document.getElementById("epoxyBtn").classList.remove("active");
+      await setTransport("libcurl");
+      statusText.textContent = "Transport: LibCurl";
+    });
+    
+    // Wisp configuration
+    function getWispUrl() {
+      const wisp = document.getElementById("websocket").value.trim();
+      const defaultWisp = "wss://gointospace.app/wisp/";
+      return wisp || defaultWisp;
+    }
+    
+    async function setTransport(transportsel) {
+      const wispUrl = getWispUrl();
+      switch (transportsel) {
+        case "epoxy":
+          await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs", [{ wisp: wispUrl }]);
+          break;
+        case "libcurl":
+          await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/libcurl-transport/dist/index.mjs", [{ websocket: wispUrl }]);
+          break;
+        default:
+          await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs", [{ wisp: wispUrl }]);
+          break;
+      }
+    }
+    
+    document.getElementById("wisp").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      await setTransport(currentTransport);
+      statusText.textContent = "Wisp server updated";
+      setTimeout(() => {
+        statusText.textContent = `Transport: ${currentTransport === "epoxy" ? "Epoxy" : "LibCurl"}`;
+      }, 2000);
+    });
+    
+    function search(input) {
+      let template = "https://search.brave.com/search?q=%s";
+      
+      try {
+        return new URL(input).toString();
+      } catch (err) {}
+      
+      try {
+        let url = new URL(`http://${input}`);
+        if (url.hostname.includes(".")) return url.toString();
+      } catch (err) {}
+      
+      return template.replace("%s", encodeURIComponent(input)); 
+    }
+    
+    setTransport("epoxy");
+    
+    document.getElementById("search").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const input = urlInput.value.trim();
+      if (!input) return;
+      
+      loadingOverlay.classList.add("show");
+      statusText.textContent = "Loading...";
+      
+      let fixedurl = search(input);
+      let src = scramjet.encodeUrl(fixedurl);
+      iframe.src = src;
+      
+      // Update displays with the actual URL
+      urlInput.value = fixedurl;
+      currentUrlDisplay.textContent = fixedurl;
+      
+      // Hide loading overlay after a delay
+      setTimeout(() => {
+        loadingOverlay.classList.remove("show");
+        statusText.textContent = "Connected";
+      }, 1000);
+    });
+    
+    // Listen for iframe load events and navigation changes
+    iframe.addEventListener("load", () => {
+      loadingOverlay.classList.remove("show");
+      if (iframe.src && iframe.src !== "about:blank") {
+        statusText.textContent = "Connected";
+        // Update URL bar when iframe loads
+        updateUrlBar();
+      }
+    });
+    
+    // Monitor iframe src changes using MutationObserver
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+          updateUrlBar();
+        }
+      });
+    });
+    
+    // Start observing the iframe for attribute changes
+    observer.observe(iframe, {
+      attributes: true,
+      attributeFilter: ['src']
+    });
+    
+    // Try to intercept navigation within the iframe (if same-origin)
+    try {
+      iframe.addEventListener("load", function() {
+        try {
+          // Try to access iframe's contentWindow to monitor URL changes
+          if (iframe.contentWindow) {
+            iframe.contentWindow.addEventListener("popstate", updateUrlBar);
+            iframe.contentWindow.addEventListener("hashchange", updateUrlBar);
+            
+            // Override pushState and replaceState to catch programmatic navigation
+            const originalPushState = iframe.contentWindow.history.pushState;
+            const originalReplaceState = iframe.contentWindow.history.replaceState;
+            
+            iframe.contentWindow.history.pushState = function() {
+              originalPushState.apply(iframe.contentWindow.history, arguments);
+              setTimeout(updateUrlBar, 0);
+            };
+            
+            iframe.contentWindow.history.replaceState = function() {
+              originalReplaceState.apply(iframe.contentWindow.history, arguments);
+              setTimeout(updateUrlBar, 0);
+            };
+          }
+        } catch (e) {
+          // Cross-origin, can't access iframe content
+          console.log("Cross-origin iframe, limited URL tracking");
+        }
+      });
+    } catch (e) {
+      console.log("Unable to monitor iframe navigation:", e);
+    }
+    
+    // Periodically check for URL changes (fallback for cross-origin iframes)
+    setInterval(() => {
+      if (iframe.src && iframe.src !== 'about:blank') {
+        updateUrlBar();
+      }
+    }, 1000);
+  </script>
 </body>
 </html>
