@@ -288,7 +288,7 @@
       <div class="settings-group">
         <label class="settings-label">Wisp Server</label>
         <form id="wisp" onsubmit="return false;">
-          <input id="websocket" type="text" class="settings-input" value="wss://gointospace.app/wisp/" placeholder="wss://gointospace.app/wisp/">
+          <input id="websocket" type="text" class="settings-input" value="" placeholder="wss://gointospace.app/wisp/">
         </form>
       </div>
 
@@ -430,11 +430,12 @@
       statusText.textContent = "Transport: LibCurl";
     });
 
-    function getWispUrl() {
-      const wisp = document.getElementById("websocket").value.trim();
-      const defaultWisp = "wss://gointospace.app/wisp/";
-      return wisp || defaultWisp;
-    }
+function getWispUrl() {
+  const wisp = document.getElementById("websocket").value.trim();
+  const defaultWisp = "wss://gointospace.app/wisp/";
+  return wisp || defaultWisp;
+}
+
 
     async function setTransport(transportsel) {
       const wispUrl = getWispUrl();
