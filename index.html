@@ -15,9 +15,9 @@
     });
     try {
       scramjet.init();
-      navigator.serviceWorker.register("/sw.js");
+      navigator.serviceWorker.register("https://cdn.jsdelivr.net/gh/Darkdragonzxs/zodiac@main/sw.js");
     } catch (e) { console.error("scramjet failed to initialize;", e); }
-    const connection = new BareMux.BareMuxConnection("/bareworker.js");
+    const connection = new BareMux.BareMuxConnection("https://cdn.jsdelivr.net/gh/Darkdragonzxs/zodiac@main/bareworker.js");
     document.getElementById("websocket").placeholder = "wss://gointospace.app/wisp/";
     function getWispUrl() {
         const wisp = document.getElementById("websocket").value.trim();
