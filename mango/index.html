@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>zodiac.</title>
-<link rel="icon" href="/image/fav.png" type="image/png">
+  <link rel="icon" href="/image/fav.png" type="image/png">
 
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <style>
@@ -48,19 +48,6 @@
       transition: all 0.2s ease;
       font-size: 16px;
     }
-    .nav-btn:hover:not(:disabled) {
-      background: #4a4a4a;
-      color: #fff;
-      transform: translateY(-1px);
-    }
-    .nav-btn:active:not(:disabled) {
-      transform: translateY(0);
-    }
-    .nav-btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-    /* URL Bar Container */
     .url-bar-container {
       flex: 1;
       display: flex;
@@ -75,18 +62,7 @@
       padding: 8px 15px;
       border-radius: 20px;
       font-size: 14px;
-      transition: all 0.3s ease;
     }
-    .search-input:focus {
-      outline: none;
-      border-color: #5a5aff;
-      background: #333;
-      box-shadow: 0 0 0 2px rgba(90, 90, 255, 0.2);
-    }
-    .search-input::placeholder {
-      color: #808080;
-    }
-    /* Settings Button */
     .settings-btn {
       background: #3a3a3a;
       border: 1px solid #4a4a4a;
@@ -94,14 +70,8 @@
       padding: 8px 12px;
       border-radius: 6px;
       cursor: pointer;
-      transition: all 0.2s ease;
       font-size: 18px;
     }
-    .settings-btn:hover {
-      background: #4a4a4a;
-      color: #fff;
-    }
-    /* Settings Panel */
     .settings-panel {
       display: none;
       position: absolute;
@@ -118,56 +88,8 @@
     .settings-panel.show {
       display: block;
     }
-    .settings-group {
-      margin-bottom: 15px;
-    }
-    .settings-label {
-      display: block;
-      margin-bottom: 5px;
-      font-size: 12px;
-      color: #a0a0a0;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .settings-input {
-      width: 100%;
-      background: #1a1a1a;
-      border: 1px solid #3a3a3a;
-      color: #e0e0e0;
-      padding: 8px 10px;
-      border-radius: 4px;
-      font-size: 13px;
-    }
-    .settings-input:focus {
-      outline: none;
-      border-color: #5a5aff;
-    }
-    .transport-select {
-      display: flex;
-      gap: 10px;
-      margin-top: 5px;
-    }
-    .transport-btn {
-      flex: 1;
-      padding: 6px 10px;
-      background: #3a3a3a;
-      border: 1px solid #4a4a4a;
-      color: #b0b0b0;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      transition: all 0.2s ease;
-    }
-    .transport-btn:hover {
-      background: #4a4a4a;
-      color: #fff;
-    }
-    .transport-btn.active {
-      background: #5a5aff;
-      border-color: #5a5aff;
-      color: #fff;
-    }
-    /* Iframe Container */
+
+    /* Iframe */
     .iframe-container {
       flex: 1;
       position: relative;
@@ -181,7 +103,9 @@
       width: 100%;
       height: 100%;
     }
-    /* Loading Overlay */
+
+    /* ❌ REMOVED STATUS BAR — all CSS deleted */
+
     .loading-overlay {
       position: absolute;
       top: 0;
@@ -208,53 +132,15 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-    /* Status Bar */
-    .status-bar {
-      background: #1f1f1f;
-      padding: 4px 15px;
-      border-top: 1px solid #3a3a3a;
-      font-size: 12px;
-      color: #808080;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .status-indicator {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #4CAF50;
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-    /* Responsive Design */
-    @media (max-width: 600px) {
-      .nav-controls {
-        flex-wrap: wrap;
-      }
-      .settings-panel {
-        left: 15px;
-        right: 15px;
-        min-width: auto;
-      }
-    }
   </style>
 </head>
 <body>
   <div class="browser-header">
     <div class="nav-controls">
-      <button class="nav-btn" id="backBtn" title="Back"><i class="fas fa-arrow-left"></i></button>
-      <button class="nav-btn" id="forwardBtn" title="Forward"><i class="fas fa-arrow-right"></i></button>
-      <button class="nav-btn" id="reloadBtn" title="Reload"><i class="fas fa-sync-alt"></i></button>
-      <button class="nav-btn" id="homeBtn" title="Home"><i class="fas fa-home"></i></button>
+      <button class="nav-btn" id="backBtn"><i class="fas fa-arrow-left"></i></button>
+      <button class="nav-btn" id="forwardBtn"><i class="fas fa-arrow-right"></i></button>
+      <button class="nav-btn" id="reloadBtn"><i class="fas fa-sync-alt"></i></button>
+      <button class="nav-btn" id="homeBtn"><i class="fas fa-home"></i></button>
 
       <div class="url-bar-container">
         <form id="search" style="flex: 1; display: flex;">
@@ -262,23 +148,17 @@
         </form>
       </div>
 
-      <button class="settings-btn" id="settingsBtn" title="Settings"><i class="fas fa-cogs"></i></button>
+      <button class="settings-btn" id="settingsBtn"><i class="fas fa-cogs"></i></button>
     </div>
 
     <div class="settings-panel" id="settingsPanel">
       <div class="settings-group">
         <label class="settings-label">Wisp Server</label>
-        <form id="wisp" onsubmit="return false;">
-          <input id="websocket" type="text" class="settings-input" value="wss://gointospace.app/wisp/" placeholder="wss://gointospace.app/wisp/">
-        </form>
-      </div>
 
-      <div class="settings-group">
-        <label class="settings-label">Transport Type</label>
-        <div class="transport-select">
-          <button class="transport-btn active" id="epoxyBtn"><i class="fas fa-plug"></i> Epoxy</button>
-          <button class="transport-btn" id="libcurlBtn"><i class="fas fa-plug"></i> LibCurl</button>
-        </div>
+        <!-- ✔ AUTO DEFAULT (EMPTY input — JS fills value) -->
+        <form id="wisp" onsubmit="return false;">
+          <input id="websocket" type="text" class="settings-input" placeholder="">
+        </form>
       </div>
     </div>
   </div>
@@ -290,13 +170,7 @@
     <iframe id="iframe" width="100%" height="100%"></iframe>
   </div>
 
-  <div class="status-bar">
-    <div class="status-indicator">
-      <div class="status-dot"></div>
-      <span id="statusText">Ready</span>
-    </div>
-    <div id="currentUrl"></div>
-  </div>
+  <!-- ❌ BOTTOM STATUS BAR REMOVED -->
 
   <script src="https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js"></script>
   <script type="module">
@@ -311,152 +185,79 @@
       }
     });
 
-    try {
-      scramjet.init();
-      navigator.serviceWorker.register("/sw.js");
-    } catch (e) {
-      console.error("scramjet failed to initialize;", e);
-    }
+    scramjet.init();
+    navigator.serviceWorker.register("/sw.js");
 
     const connection = new BareMux.BareMuxConnection("/bareworker.js");
-    let currentTransport = "epoxy";
-    let isUrlInputFocused = false;
-    let currentTargetUrl = "";
 
     const iframe = document.getElementById("iframe");
     const urlInput = document.getElementById("url");
-    const statusText = document.getElementById("statusText");
-    const currentUrlDisplay = document.getElementById("currentUrl");
     const loadingOverlay = document.getElementById("loadingOverlay");
 
+    let currentTargetUrl = "";
+    let isUrlInputFocused = false;
+
+    // ----------------------------------------------------------
+    // ✔ SET DEFAULT WISP SERVER TO CURRENT DOMAIN /ww/w/
+    // ----------------------------------------------------------
+    const autoWisp = `wss://${location.host}/ww/w/`;
+    document.getElementById("websocket").value = autoWisp;
+
+    function getWispUrl() {
+      const val = document.getElementById("websocket").value.trim();
+      return val || autoWisp;
+    }
+    // ----------------------------------------------------------
+
+    const connectionTransport = "epoxy";
+    async function setTransport() {
+      await connection.setTransport(
+        "https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs",
+        [{ wisp: getWispUrl() }]
+      );
+    }
+    setTransport();
+
+    // Navigation + URL update
     setTimeout(() => {
       iframe.src = "/home.html";
     }, 100);
 
-    urlInput.addEventListener("focus", () => {
-      isUrlInputFocused = true;
-    });
-
-    urlInput.addEventListener("blur", () => {
-      isUrlInputFocused = false;
-    });
+    urlInput.addEventListener("focus", () => isUrlInputFocused = true);
+    urlInput.addEventListener("blur", () => isUrlInputFocused = false);
 
     function updateUrlBar() {
-      if (isUrlInputFocused) {
-        return;
-      }
-
-      if (currentTargetUrl) {
+      if (!isUrlInputFocused && currentTargetUrl) {
         urlInput.value = currentTargetUrl;
-        currentUrlDisplay.textContent = currentTargetUrl;
-      } else if (iframe.src.endsWith('/home.html') || !iframe.src || iframe.src === 'about:blank') {
-        urlInput.value = '';
-        currentUrlDisplay.textContent = '';
       }
     }
 
-    document.getElementById("backBtn").addEventListener("click", () => {
-      iframe.contentWindow.history.back();
-      setTimeout(updateUrlBar, 300);
-    });
+    document.getElementById("backBtn").onclick = () => iframe.contentWindow.history.back();
+    document.getElementById("forwardBtn").onclick = () => iframe.contentWindow.history.forward();
+    document.getElementById("reloadBtn").onclick = () => iframe.contentWindow.location.reload();
 
-    document.getElementById("forwardBtn").addEventListener("click", () => {
-      iframe.contentWindow.history.forward();
-      setTimeout(updateUrlBar, 300);
-    });
-
-    document.getElementById("reloadBtn").addEventListener("click", () => {
-      loadingOverlay.classList.add("show");
-      iframe.contentWindow.location.reload();
-      setTimeout(() => {
-        updateUrlBar();
-        loadingOverlay.classList.remove("show");
-      }, 800);
-    });
-
-    document.getElementById("homeBtn").addEventListener("click", () => {
+    document.getElementById("homeBtn").onclick = () => {
       currentTargetUrl = "";
       urlInput.value = "";
       iframe.src = "/home.html";
-      currentUrlDisplay.textContent = "";
-      statusText.textContent = "Ready";
-    });
+    };
 
-    document.getElementById("settingsBtn").addEventListener("click", () => {
-      const panel = document.getElementById("settingsPanel");
-      panel.classList.toggle("show");
-    });
+    document.getElementById("settingsBtn").onclick = () =>
+      document.getElementById("settingsPanel").classList.toggle("show");
 
-    document.addEventListener("click", (e) => {
-      const panel = document.getElementById("settingsPanel");
-      const settingsBtn = document.getElementById("settingsBtn");
-      if (!panel.contains(e.target) && e.target !== settingsBtn && !settingsBtn.contains(e.target)) {
-        panel.classList.remove("show");
-      }
-    });
-
-    document.getElementById("epoxyBtn").addEventListener("click", async () => {
-      currentTransport = "epoxy";
-      document.getElementById("epoxyBtn").classList.add("active");
-      document.getElementById("libcurlBtn").classList.remove("active");
-      await setTransport("epoxy");
-      statusText.textContent = "Transport: Epoxy";
-    });
-
-    document.getElementById("libcurlBtn").addEventListener("click", async () => {
-      currentTransport = "libcurl";
-      document.getElementById("libcurlBtn").classList.add("active");
-      document.getElementById("epoxyBtn").classList.remove("active");
-      await setTransport("libcurl");
-      statusText.textContent = "Transport: LibCurl";
-    });
-
-    function getWispUrl() {
-      const wisp = document.getElementById("websocket").value.trim();
-      const defaultWisp = "wss://gointospace.app/wisp/";
-      return wisp || defaultWisp;
-    }
-
-    async function setTransport(transportsel) {
-      const wispUrl = getWispUrl();
-      switch (transportsel) {
-        case "epoxy":
-          await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs", [{ wisp: wispUrl }]);
-          break;
-        case "libcurl":
-          await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/libcurl-transport/dist/index.mjs", [{ websocket: wispUrl }]);
-          break;
-        default:
-          await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs", [{ wisp: wispUrl }]);
-          break;
-      }
-    }
-
-    document.getElementById("wisp").addEventListener("submit", async (event) => {
-      event.preventDefault();
-      await setTransport(currentTransport);
-      statusText.textContent = "Wisp server updated";
-      setTimeout(() => {
-        statusText.textContent = `Transport: ${currentTransport === "epoxy" ? "Epoxy" : "LibCurl"}`;
-      }, 2000);
+    document.getElementById("wisp").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      await setTransport();
     });
 
     function search(input) {
-      let template = "https://ecosia.org/search?q=%s";
-
-      try {
-        return new URL(input).toString();
-      } catch (err) {}
-
+      try { return new URL(input).toString(); } catch {}
       try {
         let url = new URL(`http://${input}`);
         if (url.hostname.includes(".")) return url.toString();
-      } catch (err) {}
-
-      return template.replace("%s", encodeURIComponent(input));
+      } catch {}
+      return "https://ecosia.org/search?q=" + encodeURIComponent(input);
     }
-
-    setTransport("epoxy");
 
     document.getElementById("search").addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -464,41 +265,23 @@
       if (!input) return;
 
       loadingOverlay.classList.add("show");
-      statusText.textContent = "Loading...";
 
       let fixedurl = search(input);
       currentTargetUrl = fixedurl;
-      
-      let src = scramjet.encodeUrl(fixedurl);
-      iframe.src = src;
 
-      urlInput.value = currentTargetUrl;
-      currentUrlDisplay.textContent = currentTargetUrl;
+      iframe.src = scramjet.encodeUrl(fixedurl);
 
       setTimeout(() => {
         loadingOverlay.classList.remove("show");
-        statusText.textContent = "Connected";
       }, 1000);
     });
 
     iframe.addEventListener("load", () => {
       loadingOverlay.classList.remove("show");
-      
-      if (iframe.src.endsWith('/home.html')) {
-        statusText.textContent = "Ready";
-        currentTargetUrl = "";
-        updateUrlBar();
-      } else if (iframe.src && iframe.src !== "about:blank") {
-        statusText.textContent = "Connected";
-        updateUrlBar();
-      }
+      updateUrlBar();
     });
 
-    setInterval(() => {
-      if (!isUrlInputFocused && currentTargetUrl && urlInput.value !== currentTargetUrl) {
-        updateUrlBar();
-      }
-    }, 1000);
+    setInterval(updateUrlBar, 1000);
   </script>
 </body>
 </html>
