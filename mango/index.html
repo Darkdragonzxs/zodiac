@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZODIAC</title>
+  <title>TinyJet Browser</title>
   <!-- FontAwesome CDN -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <style>
@@ -322,107 +322,58 @@
     const connection = new BareMux.BareMuxConnection("/bareworker.js");
     let currentTransport = "epoxy";
     let isUrlInputFocused = false;
-    let lastKnownUrl = "";
+    let currentTargetUrl = "";
 
-    // UI Elements
     const iframe = document.getElementById("iframe");
     const urlInput = document.getElementById("url");
     const statusText = document.getElementById("statusText");
     const currentUrlDisplay = document.getElementById("currentUrl");
     const loadingOverlay = document.getElementById("loadingOverlay");
 
-    // Track URL input focus state
     urlInput.addEventListener("focus", () => {
+      console.log("[v0] URL input focused");
       isUrlInputFocused = true;
     });
 
     urlInput.addEventListener("blur", () => {
+      console.log("[v0] URL input blurred");
       isUrlInputFocused = false;
     });
 
-    // Enhanced function to extract and decode URL from Scramjet URL
-    function extractRealUrl(scramjetUrl) {
-      try {
-        if (!scramjetUrl || scramjetUrl === 'about:blank' || scramjetUrl.endsWith('/home.html')) {
-          return '';
-        }
-
-        // Check if this is a scramjet URL
-        if (scramjetUrl.includes('/scramjet/')) {
-          // Split by /scramjet/ and get the encoded part
-          const parts = scramjetUrl.split('/scramjet/');
-          if (parts.length > 1) {
-            let encodedUrl = parts[1];
-            
-            // Remove any query parameters or hash from the scramjet wrapper
-            const wrapperParams = encodedUrl.indexOf('?');
-            if (wrapperParams !== -1 && wrapperParams < 10) {
-              encodedUrl = encodedUrl.substring(0, wrapperParams);
-            }
-
-            // Decode the URL
-            try {
-              const decodedUrl = decodeURIComponent(encodedUrl);
-              return decodedUrl;
-            } catch (e) {
-              // If decoding fails, try without decoding
-              return encodedUrl;
-            }
-          }
-        }
-        
-        // If not a scramjet URL, return as is (but not internal URLs)
-        if (scramjetUrl.startsWith('http://') || scramjetUrl.startsWith('https://')) {
-          return scramjetUrl;
-        }
-      } catch (e) {
-        console.error('Error extracting URL:', e);
-      }
-      return '';
-    }
-
-    // Enhanced function to update URL bar
     function updateUrlBar() {
-      // Don't update if the user is currently typing
       if (isUrlInputFocused) {
+        console.log("[v0] URL input is focused, skipping update");
         return;
       }
 
-      try {
-        const iframeSrc = iframe.src;
-        
-        if (iframeSrc && iframeSrc !== 'about:blank' && !iframeSrc.endsWith('/home.html')) {
-          const realUrl = extractRealUrl(iframeSrc);
-          
-          if (realUrl && realUrl !== lastKnownUrl) {
-            lastKnownUrl = realUrl;
-            urlInput.value = realUrl;
-            currentUrlDisplay.textContent = realUrl;
-          }
-        } else if (iframeSrc === 'about:blank' || !iframeSrc || iframeSrc.endsWith('/home.html')) {
-          if (lastKnownUrl !== '') {
-            lastKnownUrl = '';
-            urlInput.value = '';
-            currentUrlDisplay.textContent = '';
-          }
-        }
-      } catch (e) {
-        console.error('Error updating URL bar:', e);
+      console.log("[v0] Updating URL bar. Current target URL:", currentTargetUrl);
+      console.log("[v0] Current iframe src:", iframe.src);
+
+      if (currentTargetUrl) {
+        urlInput.value = currentTargetUrl;
+        currentUrlDisplay.textContent = currentTargetUrl;
+        console.log("[v0] Updated URL bar to:", currentTargetUrl);
+      } else if (iframe.src.endsWith('/home.html') || !iframe.src || iframe.src === 'about:blank') {
+        urlInput.value = '';
+        currentUrlDisplay.textContent = '';
+        console.log("[v0] Cleared URL bar (home page)");
       }
     }
 
-    // Navigation functions
     document.getElementById("backBtn").addEventListener("click", () => {
+      console.log("[v0] Back button clicked");
       iframe.contentWindow.history.back();
       setTimeout(updateUrlBar, 300);
     });
 
     document.getElementById("forwardBtn").addEventListener("click", () => {
+      console.log("[v0] Forward button clicked");
       iframe.contentWindow.history.forward();
       setTimeout(updateUrlBar, 300);
     });
 
     document.getElementById("reloadBtn").addEventListener("click", () => {
+      console.log("[v0] Reload button clicked");
       loadingOverlay.classList.add("show");
       iframe.contentWindow.location.reload();
       setTimeout(() => {
@@ -432,20 +383,19 @@
     });
 
     document.getElementById("homeBtn").addEventListener("click", () => {
+      console.log("[v0] Home button clicked");
+      currentTargetUrl = "";
       urlInput.value = "";
       iframe.src = "/home.html";
       currentUrlDisplay.textContent = "";
       statusText.textContent = "Ready";
-      lastKnownUrl = "";
     });
 
-    // Settings toggle
     document.getElementById("settingsBtn").addEventListener("click", () => {
       const panel = document.getElementById("settingsPanel");
       panel.classList.toggle("show");
     });
 
-    // Close settings when clicking outside
     document.addEventListener("click", (e) => {
       const panel = document.getElementById("settingsPanel");
       const settingsBtn = document.getElementById("settingsBtn");
@@ -454,7 +404,6 @@
       }
     });
 
-    // Transport selection
     document.getElementById("epoxyBtn").addEventListener("click", async () => {
       currentTransport = "epoxy";
       document.getElementById("epoxyBtn").classList.add("active");
@@ -471,7 +420,6 @@
       statusText.textContent = "Transport: LibCurl";
     });
 
-    // Wisp configuration
     function getWispUrl() {
       const wisp = document.getElementById("websocket").value.trim();
       const defaultWisp = "wss://gointospace.app/wisp/";
@@ -524,72 +472,51 @@
       const input = urlInput.value.trim();
       if (!input) return;
 
+      console.log("[v0] Search submitted with input:", input);
+
       loadingOverlay.classList.add("show");
       statusText.textContent = "Loading...";
 
       let fixedurl = search(input);
-      let src = scramjet.encodeUrl(fixedurl);
+      console.log("[v0] Fixed URL:", fixedurl);
       
-      // Store the actual URL we're navigating to
-      lastKnownUrl = fixedurl;
+      currentTargetUrl = fixedurl;
+      
+      let src = scramjet.encodeUrl(fixedurl);
+      console.log("[v0] Encoded URL:", src);
+      
       iframe.src = src;
 
-      // Update displays immediately with the target URL
-      currentUrlDisplay.textContent = fixedurl;
+      urlInput.value = currentTargetUrl;
+      currentUrlDisplay.textContent = currentTargetUrl;
 
-      // Hide loading overlay after a delay
       setTimeout(() => {
         loadingOverlay.classList.remove("show");
         statusText.textContent = "Connected";
-        updateUrlBar();
+        console.log("[v0] Page loaded, URL bar should show:", currentTargetUrl);
       }, 1000);
     });
 
-    // Enhanced iframe load event listener
     iframe.addEventListener("load", () => {
+      console.log("[v0] Iframe loaded, src:", iframe.src);
       loadingOverlay.classList.remove("show");
-      if (iframe.src && iframe.src !== "about:blank" && !iframe.src.endsWith('/home.html')) {
-        statusText.textContent = "Connected";
-        // Force update URL bar when iframe loads
-        setTimeout(updateUrlBar, 100);
-      } else if (iframe.src.endsWith('/home.html')) {
+      
+      if (iframe.src.endsWith('/home.html')) {
         statusText.textContent = "Ready";
-      }
-    });
-
-    // Monitor iframe src changes using MutationObserver
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
-          setTimeout(updateUrlBar, 100);
-        }
-      });
-    });
-
-    // Start observing the iframe for attribute changes
-    observer.observe(iframe, {
-      attributes: true,
-      attributeFilter: ['src']
-    });
-
-    // Aggressive URL checking - checks multiple times per second
-    let urlCheckInterval = setInterval(() => {
-      if (!isUrlInputFocused && iframe.src && iframe.src !== 'about:blank' && !iframe.src.endsWith('/home.html')) {
+        currentTargetUrl = "";
+        updateUrlBar();
+      } else if (iframe.src && iframe.src !== "about:blank") {
+        statusText.textContent = "Connected";
         updateUrlBar();
       }
-    }, 500);
+    });
 
-    // Additional fallback check
     setInterval(() => {
-      if (!isUrlInputFocused && iframe.src && !iframe.src.endsWith('/home.html')) {
-        const currentDisplayedUrl = urlInput.value;
-        const actualUrl = extractRealUrl(iframe.src);
-        
-        if (actualUrl && actualUrl !== currentDisplayedUrl && actualUrl !== '') {
-          updateUrlBar();
-        }
+      if (!isUrlInputFocused && currentTargetUrl && urlInput.value !== currentTargetUrl) {
+        console.log("[v0] URL bar out of sync, correcting");
+        updateUrlBar();
       }
-    }, 1500);
+    }, 1000);
   </script>
 </body>
 </html>
