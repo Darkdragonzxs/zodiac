@@ -386,17 +386,20 @@ function extractRealUrl(scramjetUrl) {
   return scramjetUrl;
 }
 
-/* Update URL bar — simple, reliable */
+/* Update URL bar — works every load and redirect */
 function updateUrlBar() {
-  const src = iframe.src;
-  if (!src || src === "about:blank") {
-    urlInput.value = "";
-    currentUrlDisplay.textContent = "";
-    return;
+  let realUrl = '';
+
+  try {
+    // If same-origin, get iframe's actual location
+    realUrl = iframe.contentWindow.location.href;
+  } catch(e) {
+    // Cross-origin fallback: decode proxy URL
+    realUrl = extractRealUrl(iframe.src);
   }
-  const real = extractRealUrl(src);
-  if (!isUrlInputFocused) urlInput.value = real;
-  currentUrlDisplay.textContent = real;
+
+  if (!isUrlInputFocused) urlInput.value = realUrl;
+  currentUrlDisplay.textContent = realUrl;
 }
 
 /* ===========================================================
@@ -513,6 +516,10 @@ iframe.addEventListener("load", () => {
   statusText.textContent = "Connected";
   updateUrlBar();
 });
+
+// Optional: observe src changes for extra reliability
+const observer = new MutationObserver(() => updateUrlBar());
+observer.observe(iframe, { attributes: true, attributeFilter: ['src'] });
 </script>
 
 </body>
