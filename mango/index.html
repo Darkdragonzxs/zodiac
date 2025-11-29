@@ -447,43 +447,44 @@
       }, 2000);
     });
     
-function search(input) {
-  let template = "https://search.brave.com/search?q=%s";
-  
-  try {
-    return new URL(input).toString();
-  } catch (err) {}
-  
-  try {
-    let url = new URL(`http://${input}`);
-    if (url.hostname.includes(".")) return url.toString();
-  } catch (err) {}
-  
-  return template.replace("%s", encodeURIComponent(input)); 
-}
-
-document.getElementById("search").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const input = urlInput.value.trim();
-  if (!input) return;
-
-  loadingOverlay.classList.add("show");
-  statusText.textContent = "Loading...";
-
-  let fixedurl = search(input);
-  
-  // Instead of using scramjet.encodeUrl(), directly set the URL as the iframe src
-  iframe.src = fixedurl; 
-  
-  currentUrlDisplay.textContent = fixedurl;
-  
-  // Hide loading overlay after a delay
-  setTimeout(() => {
-    loadingOverlay.classList.remove("show");
-    statusText.textContent = "Connected";
-  }, 1000);
-});
-
+    function search(input) {
+      let template = "https://search.brave.com/search?q=%s";
+      
+      try {
+        return new URL(input).toString();
+      } catch (err) {}
+      
+      try {
+        let url = new URL(`http://${input}`);
+        if (url.hostname.includes(".")) return url.toString();
+      } catch (err) {}
+      
+      return template.replace("%s", encodeURIComponent(input)); 
+    }
+    
+    setTransport("epoxy");
+    
+    document.getElementById("search").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const input = urlInput.value.trim();
+      if (!input) return;
+      
+      loadingOverlay.classList.add("show");
+      statusText.textContent = "Loading...";
+      
+      let fixedurl = search(input);
+      let src = scramjet.encodeUrl(fixedurl);
+      iframe.src = src;
+      
+      currentUrlDisplay.textContent = fixedurl;
+      
+      // Hide loading overlay after a delay
+      setTimeout(() => {
+        loadingOverlay.classList.remove("show");
+        statusText.textContent = "Connected";
+      }, 1000);
+    });
+    
     // Listen for iframe load events
     iframe.addEventListener("load", () => {
       loadingOverlay.classList.remove("show");
