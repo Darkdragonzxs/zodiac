@@ -338,6 +338,7 @@
 <script type="module" defer>
 import * as BareMux from "https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux/dist/index.mjs";
 
+// Initialize Scramjet
 const { ScramjetController } = $scramjetLoadController();
 const scramjet = new ScramjetController({
   files: {
@@ -351,21 +352,24 @@ try {
   scramjet.init();
   navigator.serviceWorker.register("/sw.js");
 } catch (e) {
-  console.error("scramjet failed to initialize;", e);
+  console.error("Scramjet failed to initialize;", e);
 }
 
+// BareMux connection
 const connection = new BareMux.BareMuxConnection("/bareworker.js");
 let currentTransport = "epoxy";
 let isUrlInputFocused = false;
 
-// UI elements
+// UI Elements
 const iframe = document.getElementById("iframe");
 const urlInput = document.getElementById("url");
 const currentUrlDisplay = document.getElementById("currentUrl");
 const statusText = document.getElementById("statusText");
 const loadingOverlay = document.getElementById("loadingOverlay");
+const epoxyBtn = document.getElementById("epoxyBtn");
+const libcurlBtn = document.getElementById("libcurlBtn");
 
-// Handle focus state of URL input
+// Track URL input focus
 urlInput.addEventListener("focus", () => isUrlInputFocused = true);
 urlInput.addEventListener("blur", () => isUrlInputFocused = false);
 
@@ -375,56 +379,32 @@ urlInput.addEventListener("blur", () => isUrlInputFocused = false);
 function extractRealUrl(scramjetUrl) {
   try {
     if (scramjetUrl.includes("/scramjet/")) {
-      let encoded = scramjetUrl.split("/scramjet/")[1];
+      const encoded = scramjetUrl.split("/scramjet/")[1];
       return decodeURIComponent(encoded);
     }
   } catch (e) {}
   return scramjetUrl;
 }
 
-let lastKnownRealUrl = "";
-
-/* ===========================================================
-   ALWAYS UPDATE URL BAR WHENEVER REAL URL CHANGES
-   =========================================================== */
-function updateUrlBarForce() {
-  const raw = iframe.src;
-
-  // Blank page
-  if (!raw || raw === "about:blank") {
+/* Update URL bar — simple, reliable */
+function updateUrlBar() {
+  const src = iframe.src;
+  if (!src || src === "about:blank") {
     urlInput.value = "";
     currentUrlDisplay.textContent = "";
-    lastKnownRealUrl = "";
     return;
   }
-
-  const real = extractRealUrl(raw);
-
-  // Only update if changed
-  if (real !== lastKnownRealUrl) {
-    lastKnownRealUrl = real;
-
-    if (!isUrlInputFocused) urlInput.value = real;
-
-    currentUrlDisplay.textContent = real;
-  }
+  const real = extractRealUrl(src);
+  if (!isUrlInputFocused) urlInput.value = real;
+  currentUrlDisplay.textContent = real;
 }
 
 /* ===========================================================
    NAVIGATION BUTTONS
    =========================================================== */
-document.getElementById("backBtn").addEventListener("click", () => {
-  iframe.contentWindow.history.back();
-});
-
-document.getElementById("forwardBtn").addEventListener("click", () => {
-  iframe.contentWindow.history.forward();
-});
-
-document.getElementById("reloadBtn").addEventListener("click", () => {
-  iframe.contentWindow.location.reload();
-});
-
+document.getElementById("backBtn").addEventListener("click", () => iframe.contentWindow.history.back());
+document.getElementById("forwardBtn").addEventListener("click", () => iframe.contentWindow.history.forward());
+document.getElementById("reloadBtn").addEventListener("click", () => iframe.contentWindow.location.reload());
 document.getElementById("homeBtn").addEventListener("click", () => {
   iframe.src = "about:blank";
   urlInput.value = "";
@@ -433,7 +413,7 @@ document.getElementById("homeBtn").addEventListener("click", () => {
 });
 
 /* ===========================================================
-   SETTINGS HANDLING
+   SETTINGS PANEL
    =========================================================== */
 document.getElementById("settingsBtn").addEventListener("click", () => {
   document.getElementById("settingsPanel").classList.toggle("show");
@@ -442,14 +422,13 @@ document.getElementById("settingsBtn").addEventListener("click", () => {
 document.addEventListener("click", (e) => {
   const panel = document.getElementById("settingsPanel");
   const btn = document.getElementById("settingsBtn");
-
   if (!panel.contains(e.target) && !btn.contains(e.target)) {
     panel.classList.remove("show");
   }
 });
 
-// Transport switching
-document.getElementById("epoxyBtn").addEventListener("click", async () => {
+// Transport buttons
+epoxyBtn.addEventListener("click", async () => {
   currentTransport = "epoxy";
   epoxyBtn.classList.add("active");
   libcurlBtn.classList.remove("active");
@@ -457,7 +436,7 @@ document.getElementById("epoxyBtn").addEventListener("click", async () => {
   statusText.textContent = "Transport: Epoxy";
 });
 
-document.getElementById("libcurlBtn").addEventListener("click", async () => {
+libcurlBtn.addEventListener("click", async () => {
   currentTransport = "libcurl";
   libcurlBtn.classList.add("active");
   epoxyBtn.classList.remove("active");
@@ -465,7 +444,7 @@ document.getElementById("libcurlBtn").addEventListener("click", async () => {
   statusText.textContent = "Transport: LibCurl";
 });
 
-// Wisp server
+// Wisp server configuration
 function getWispUrl() {
   const w = document.getElementById("websocket").value.trim();
   return w || "wss://gointospace.app/wisp/";
@@ -473,16 +452,13 @@ function getWispUrl() {
 
 async function setTransport(type) {
   const w = getWispUrl();
-
   if (type === "epoxy") {
-    return connection.setTransport(
+    await connection.setTransport(
       "https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs",
       [{ wisp: w }]
     );
-  }
-
-  if (type === "libcurl") {
-    return connection.setTransport(
+  } else if (type === "libcurl") {
+    await connection.setTransport(
       "https://cdn.jsdelivr.net/npm/@mercuryworkshop/libcurl-transport/dist/index.mjs",
       [{ websocket: w }]
     );
@@ -497,20 +473,15 @@ document.getElementById("wisp").addEventListener("submit", async (e) => {
 });
 
 /* ===========================================================
-   SEARCH HANDLING
+   SEARCH / URL BAR HANDLING
    =========================================================== */
 function search(input) {
-  let template = "https://ecosia.org/search?q=%s";
-
+  const template = "https://ecosia.org/search?q=%s";
+  try { return new URL(input).toString(); } catch(e) {}
   try {
-    return new URL(input).toString();
-  } catch (e) {}
-
-  try {
-    let url = new URL("http://" + input);
+    const url = new URL("http://" + input);
     if (url.hostname.includes(".")) return url.toString();
-  } catch (e) {}
-
+  } catch(e) {}
   return template.replace("%s", encodeURIComponent(input));
 }
 
@@ -535,53 +506,14 @@ document.getElementById("search").addEventListener("submit", (e) => {
 });
 
 /* ===========================================================
-   iframe LOAD HANDLER — ALWAYS UPDATE
+   IFRAME LOAD HANDLER — ALWAYS UPDATE URL BAR
    =========================================================== */
 iframe.addEventListener("load", () => {
   loadingOverlay.classList.remove("show");
   statusText.textContent = "Connected";
-
-  updateUrlBarForce();
-
-  // Try hooking navigation inside iframe (only works if same-origin)
-  try {
-    const win = iframe.contentWindow;
-
-    win.addEventListener("hashchange", updateUrlBarForce);
-    win.addEventListener("popstate", updateUrlBarForce);
-
-    // Patch pushState
-    const ps = win.history.pushState;
-    win.history.pushState = function () {
-      ps.apply(win.history, arguments);
-      updateUrlBarForce();
-    };
-
-    // Patch replaceState
-    const rs = win.history.replaceState;
-    win.history.replaceState = function () {
-      rs.apply(win.history, arguments);
-      updateUrlBarForce();
-    };
-  } catch (err) {
-    console.log("Cross-origin iframe, using fallback tracking");
-  }
+  updateUrlBar();
 });
-
-/* ===========================================================
-   WATCH FOR CHANGES TO iframe.src ATTRIBUTE
-   =========================================================== */
-new MutationObserver(() => updateUrlBarForce()).observe(iframe, {
-  attributes: true,
-  attributeFilter: ["src"]
-});
-
-/* ===========================================================
-   FALLBACK CHECK (every 200ms)
-   Catches redirects, JS router changes, cross-origin navigations
-   =========================================================== */
-setInterval(updateUrlBarForce, 200);
-
 </script>
+
 </body>
 </html>
