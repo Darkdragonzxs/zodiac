@@ -224,47 +224,8 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-    /* Status Bar */
-    .status-bar {
-      background: #2a2a2a;
-      padding: 6px 15px;
-      border-top: 1px solid #3a3a3a;
-      font-size: 12px;
-      color: #999;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      max-width: 1400px;
-      margin: 0 auto;
-      width: 100%;
-    }
-    .status-indicator {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #fff;
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-    /* Responsive Design */
-    @media (max-width: 600px) {
-      .nav-controls {
-        flex-wrap: wrap;
-      }
-      .settings-panel {
-        left: 15px;
-        right: 15px;
-        min-width: auto;
-      }
-    }
+
+    /* ❌ STATUS BAR REMOVED — NO CSS CHANGES MADE EXCEPT NOT INCLUDING IT */
   </style>
 </head>
 <body>
@@ -288,7 +249,7 @@
       <div class="settings-group">
         <label class="settings-label">Wisp Server</label>
         <form id="wisp" onsubmit="return false;">
-          <input id="websocket" type="text" class="settings-input" value="" placeholder="wss://gointospace.app/wisp/">
+          <input id="websocket" type="text" class="settings-input" value="" placeholder="">
         </form>
       </div>
 
@@ -309,13 +270,7 @@
     <iframe id="iframe" width="100%" height="100%"></iframe>
   </div>
 
-  <div class="status-bar">
-    <div class="status-indicator">
-      <div class="status-dot"></div>
-      <span id="statusText">Ready</span>
-    </div>
-    <div id="currentUrl"></div>
-  </div>
+  <!-- ❌ STATUS BAR REMOVED -->
 
   <script src="https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js"></script>
   <script type="module">
@@ -336,6 +291,8 @@
     } catch (e) {
       console.error("scramjet failed to initialize;", e);
     }
+    
+    document.getElementById("websocket").placeholder = `wss://${location.host}/wisp/`;
 
     const connection = new BareMux.BareMuxConnection("/bareworker.js");
     let currentTransport = "epoxy";
@@ -344,8 +301,7 @@
 
     const iframe = document.getElementById("iframe");
     const urlInput = document.getElementById("url");
-    const statusText = document.getElementById("statusText");
-    const currentUrlDisplay = document.getElementById("currentUrl");
+
     const loadingOverlay = document.getElementById("loadingOverlay");
 
     setTimeout(() => {
@@ -361,16 +317,12 @@
     });
 
     function updateUrlBar() {
-      if (isUrlInputFocused) {
-        return;
-      }
+      if (isUrlInputFocused) return;
 
       if (currentTargetUrl) {
         urlInput.value = currentTargetUrl;
-        currentUrlDisplay.textContent = currentTargetUrl;
       } else if (iframe.src.endsWith('/home.html') || !iframe.src || iframe.src === 'about:blank') {
         urlInput.value = '';
-        currentUrlDisplay.textContent = '';
       }
     }
 
@@ -397,13 +349,10 @@
       currentTargetUrl = "";
       urlInput.value = "";
       iframe.src = "/home.html";
-      currentUrlDisplay.textContent = "";
-      statusText.textContent = "Ready";
     });
 
     document.getElementById("settingsBtn").addEventListener("click", () => {
-      const panel = document.getElementById("settingsPanel");
-      panel.classList.toggle("show");
+      document.getElementById("settingsPanel").classList.toggle("show");
     });
 
     document.addEventListener("click", (e) => {
@@ -419,7 +368,6 @@
       document.getElementById("epoxyBtn").classList.add("active");
       document.getElementById("libcurlBtn").classList.remove("active");
       await setTransport("epoxy");
-      statusText.textContent = "Transport: Epoxy";
     });
 
     document.getElementById("libcurlBtn").addEventListener("click", async () => {
@@ -427,27 +375,29 @@
       document.getElementById("libcurlBtn").classList.add("active");
       document.getElementById("epoxyBtn").classList.remove("active");
       await setTransport("libcurl");
-      statusText.textContent = "Transport: LibCurl";
     });
 
-function getWispUrl() {
-  const wisp = document.getElementById("websocket").value.trim();
-  const defaultWisp = "wss://gointospace.app/wisp/";
-  return wisp || defaultWisp;
-}
-
+    /* ✅ DYNAMIC WISP URL APPLIED */
+    function getWispUrl() {
+      const userVal = document.getElementById("websocket").value.trim();
+      const dynamic = `wss://${location.host}/wisp/`;
+      return userVal || dynamic;
+    }
 
     async function setTransport(transportsel) {
       const wispUrl = getWispUrl();
       switch (transportsel) {
         case "epoxy":
-          await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs", [{ wisp: wispUrl }]);
+          await connection.setTransport(
+            "https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs",
+            [{ wisp: wispUrl }]
+          );
           break;
         case "libcurl":
-          await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/libcurl-transport/dist/index.mjs", [{ websocket: wispUrl }]);
-          break;
-        default:
-          await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs", [{ wisp: wispUrl }]);
+          await connection.setTransport(
+            "https://cdn.jsdelivr.net/npm/@mercuryworkshop/libcurl-transport/dist/index.mjs",
+            [{ websocket: wispUrl }]
+          );
           break;
       }
     }
@@ -455,10 +405,6 @@ function getWispUrl() {
     document.getElementById("wisp").addEventListener("submit", async (event) => {
       event.preventDefault();
       await setTransport(currentTransport);
-      statusText.textContent = "Wisp server updated";
-      setTimeout(() => {
-        statusText.textContent = `Transport: ${currentTransport === "epoxy" ? "Epoxy" : "LibCurl"}`;
-      }, 2000);
     });
 
     function search(input) {
@@ -484,32 +430,27 @@ function getWispUrl() {
       if (!input) return;
 
       loadingOverlay.classList.add("show");
-      statusText.textContent = "Loading...";
 
       let fixedurl = search(input);
       currentTargetUrl = fixedurl;
-      
+
       let src = scramjet.encodeUrl(fixedurl);
       iframe.src = src;
 
       urlInput.value = currentTargetUrl;
-      currentUrlDisplay.textContent = currentTargetUrl;
 
       setTimeout(() => {
         loadingOverlay.classList.remove("show");
-        statusText.textContent = "Connected";
       }, 1000);
     });
 
     iframe.addEventListener("load", () => {
       loadingOverlay.classList.remove("show");
-      
+
       if (iframe.src.endsWith('/home.html')) {
-        statusText.textContent = "Ready";
         currentTargetUrl = "";
         updateUrlBar();
       } else if (iframe.src && iframe.src !== "about:blank") {
-        statusText.textContent = "Connected";
         updateUrlBar();
       }
     });
