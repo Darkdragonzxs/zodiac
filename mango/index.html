@@ -490,6 +490,8 @@
       loadingOverlay.classList.remove("show");
       if (iframe.src && iframe.src !== "about:blank") {
         statusText.textContent = "Connected";
+        currentUrlDisplay.textContent = iframe.src;
+        urlInput.value = iframe.src;
       }
     });
   </script>
