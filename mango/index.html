@@ -335,7 +335,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js" defer></script>
-  <script type="module" defer>
+<script type="module" defer>
     import * as BareMux from "https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux/dist/index.mjs";
     
     const { ScramjetController } = $scramjetLoadController();
@@ -356,6 +356,7 @@
     
     const connection = new BareMux.BareMuxConnection("/bareworker.js");
     let currentTransport = "epoxy";
+    let isUrlInputFocused = false; // Track if user is typing in URL bar
     
     // UI Elements
     const iframe = document.getElementById("iframe");
@@ -363,6 +364,15 @@
     const statusText = document.getElementById("statusText");
     const currentUrlDisplay = document.getElementById("currentUrl");
     const loadingOverlay = document.getElementById("loadingOverlay");
+    
+    // Track URL input focus state
+    urlInput.addEventListener("focus", () => {
+      isUrlInputFocused = true;
+    });
+    
+    urlInput.addEventListener("blur", () => {
+      isUrlInputFocused = false;
+    });
     
     // Function to extract and decode URL from Scramjet URL
     function extractRealUrl(scramjetUrl) {
@@ -386,6 +396,11 @@
     
     // Function to update URL bar based on iframe src
     function updateUrlBar() {
+      // Don't update if the user is currently typing in the URL bar
+      if (isUrlInputFocused) {
+        return;
+      }
+      
       try {
         const iframeSrc = iframe.src;
         if (iframeSrc && iframeSrc !== 'about:blank') {
@@ -516,7 +531,6 @@
       iframe.src = src;
       
       // Update displays with the actual URL
-      urlInput.value = fixedurl;
       currentUrlDisplay.textContent = fixedurl;
       
       // Hide loading overlay after a delay
@@ -575,7 +589,6 @@
             };
           }
         } catch (e) {
-          // Cross-origin, can't access iframe content
           console.log("Cross-origin iframe, limited URL tracking");
         }
       });
@@ -583,9 +596,8 @@
       console.log("Unable to monitor iframe navigation:", e);
     }
     
-    // Periodically check for URL changes (fallback for cross-origin iframes)
     setInterval(() => {
-      if (iframe.src && iframe.src !== 'about:blank') {
+      if (iframe.src && iframe.src !== 'about:blank' && !isUrlInputFocused) {
         updateUrlBar();
       }
     }, 1000);
