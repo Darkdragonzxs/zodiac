@@ -288,7 +288,7 @@
     <div class="loading-overlay" id="loadingOverlay">
       <div class="spinner"></div>
     </div>
-    <iframe id="iframe" width="100%" height="100%" src="/home.html"></iframe>
+    <iframe id="iframe" width="100%" height="100%"></iframe>
   </div>
 
   <div class="status-bar">
@@ -299,8 +299,8 @@
     <div id="currentUrl"></div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js" defer></script>
-  <script type="module" defer>
+  <script src="https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js"></script>
+  <script type="module">
     import * as BareMux from "https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux/dist/index.mjs";
 
     const { ScramjetController } = $scramjetLoadController();
@@ -330,50 +330,43 @@
     const currentUrlDisplay = document.getElementById("currentUrl");
     const loadingOverlay = document.getElementById("loadingOverlay");
 
+    setTimeout(() => {
+      iframe.src = "/home.html";
+    }, 100);
+
     urlInput.addEventListener("focus", () => {
-      console.log("[v0] URL input focused");
       isUrlInputFocused = true;
     });
 
     urlInput.addEventListener("blur", () => {
-      console.log("[v0] URL input blurred");
       isUrlInputFocused = false;
     });
 
     function updateUrlBar() {
       if (isUrlInputFocused) {
-        console.log("[v0] URL input is focused, skipping update");
         return;
       }
-
-      console.log("[v0] Updating URL bar. Current target URL:", currentTargetUrl);
-      console.log("[v0] Current iframe src:", iframe.src);
 
       if (currentTargetUrl) {
         urlInput.value = currentTargetUrl;
         currentUrlDisplay.textContent = currentTargetUrl;
-        console.log("[v0] Updated URL bar to:", currentTargetUrl);
       } else if (iframe.src.endsWith('/home.html') || !iframe.src || iframe.src === 'about:blank') {
         urlInput.value = '';
         currentUrlDisplay.textContent = '';
-        console.log("[v0] Cleared URL bar (home page)");
       }
     }
 
     document.getElementById("backBtn").addEventListener("click", () => {
-      console.log("[v0] Back button clicked");
       iframe.contentWindow.history.back();
       setTimeout(updateUrlBar, 300);
     });
 
     document.getElementById("forwardBtn").addEventListener("click", () => {
-      console.log("[v0] Forward button clicked");
       iframe.contentWindow.history.forward();
       setTimeout(updateUrlBar, 300);
     });
 
     document.getElementById("reloadBtn").addEventListener("click", () => {
-      console.log("[v0] Reload button clicked");
       loadingOverlay.classList.add("show");
       iframe.contentWindow.location.reload();
       setTimeout(() => {
@@ -383,7 +376,6 @@
     });
 
     document.getElementById("homeBtn").addEventListener("click", () => {
-      console.log("[v0] Home button clicked");
       currentTargetUrl = "";
       urlInput.value = "";
       iframe.src = "/home.html";
@@ -472,19 +464,13 @@
       const input = urlInput.value.trim();
       if (!input) return;
 
-      console.log("[v0] Search submitted with input:", input);
-
       loadingOverlay.classList.add("show");
       statusText.textContent = "Loading...";
 
       let fixedurl = search(input);
-      console.log("[v0] Fixed URL:", fixedurl);
-      
       currentTargetUrl = fixedurl;
       
       let src = scramjet.encodeUrl(fixedurl);
-      console.log("[v0] Encoded URL:", src);
-      
       iframe.src = src;
 
       urlInput.value = currentTargetUrl;
@@ -493,12 +479,10 @@
       setTimeout(() => {
         loadingOverlay.classList.remove("show");
         statusText.textContent = "Connected";
-        console.log("[v0] Page loaded, URL bar should show:", currentTargetUrl);
       }, 1000);
     });
 
     iframe.addEventListener("load", () => {
-      console.log("[v0] Iframe loaded, src:", iframe.src);
       loadingOverlay.classList.remove("show");
       
       if (iframe.src.endsWith('/home.html')) {
@@ -513,7 +497,6 @@
 
     setInterval(() => {
       if (!isUrlInputFocused && currentTargetUrl && urlInput.value !== currentTargetUrl) {
-        console.log("[v0] URL bar out of sync, correcting");
         updateUrlBar();
       }
     }, 1000);
