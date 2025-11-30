@@ -332,14 +332,17 @@
       setTimeout(updateUrlBar, 300);
     });
 
-    document.getElementById("reloadBtn").addEventListener("click", () => {
-      loadingOverlay.classList.add("show");
-      iframe.contentWindow.location.reload();
-      setTimeout(() => {
-        updateUrlBar();
-        loadingOverlay.classList.remove("show");
-      }, 800);
-    });
+document.getElementById("reloadBtn").addEventListener("click", () => {
+  showPopup("Reloading…");
+  loadingOverlay.classList.add("show");
+  iframe.contentWindow.location.reload();
+
+  setTimeout(() => {
+    updateUrlBar();
+    loadingOverlay.classList.remove("show");
+  }, 800);
+});
+
 
     document.getElementById("homeBtn").addEventListener("click", () => {
       currentTargetUrl = "";
@@ -426,15 +429,19 @@
       setTimeout(() => loadingOverlay.classList.remove("show"), 1000);
     });
 
-    iframe.addEventListener("load", () => {
-      loadingOverlay.classList.remove("show");
-      if (iframe.src.endsWith("/home.html")) {
-        currentTargetUrl = "";
-        updateUrlBar();
-      } else {
-        updateUrlBar();
-      }
-    });
+iframe.addEventListener("load", () => {
+  loadingOverlay.classList.remove("show");
+
+  if (iframe.src.endsWith("/home.html")) {
+    currentTargetUrl = "";
+    updateUrlBar();
+  } else {
+    updateUrlBar();
+  }
+
+  showPopup("Page Loaded ✓");
+});
+
 
     setInterval(() => {
       if (!isUrlInputFocused && currentTargetUrl && urlInput.value !== currentTargetUrl)
