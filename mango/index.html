@@ -209,30 +209,28 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-.popup {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #2ecc71;
-  color: #fff;
-  padding: 12px 16px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-  opacity: 0;
-  transform: translateY(15px);
-  transition: opacity .3s ease, transform .3s ease;
-  z-index: 9999;
-}
-
-.popup.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
+    .popup {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #2ecc71;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      opacity: 0;
+      transform: translateY(15px);
+      transition: opacity .3s ease, transform .3s ease;
+      z-index: 9999;
+    }
+    .popup.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body>
@@ -273,191 +271,102 @@
     </div>
     <iframe id="iframe"></iframe>
   </div>
-<div id="popup" class="popup">
-  <i class="fas fa-check-circle"></i>
-  <span id="popupText">Loaded</span>
-</div>
 
-  <script src="https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js"></script>
-  <script type="module">
-    import * as BareMux from "https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux/dist/index.mjs";
+  <div id="popup" class="popup">
+    <i class="fas fa-check-circle"></i>
+    <span id="popupText">Loaded</span>
+  </div>
 
-    const { ScramjetController } = $scramjetLoadController();
-    const scramjet = new ScramjetController({
-      files: {
-        wasm: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/wasm.wasm",
-        all: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js",
-        sync: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.sync.js"
-      }
-    });
+<script src="https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js"></script>
+<script type="module">
+import * as BareMux from "https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux/dist/index.mjs";
 
-    try {
-      scramjet.init();
-      navigator.serviceWorker.register("/sw.js");
-    } catch (e) {
-      console.error(e);
-    }
+const { ScramjetController } = $scramjetLoadController();
+const scramjet = new ScramjetController({
+  files: {
+    wasm: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/wasm.wasm",
+    all: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js",
+    sync: "https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.sync.js"
+  }
+});
 
-    document.getElementById("websocket").value = `wss://${location.host}/w/`;
-    document.getElementById("websocket").placeholder = `wss://${location.host}/w/`;
+try { scramjet.init(); navigator.serviceWorker.register("/sw.js"); } catch(e){console.error(e);}
 
-    const connection = new BareMux.BareMuxConnection("/bareworker.js");
-    let currentTransport = "epoxy";
-    let isUrlInputFocused = false;
-    let currentTargetUrl = "";
+document.getElementById("websocket").value = `wss://${location.host}/wisp/`;
 
-    const iframe = document.getElementById("iframe");
-    const urlInput = document.getElementById("url");
-    const loadingOverlay = document.getElementById("loadingOverlay");
+const connection = new BareMux.BareMuxConnection("/bareworker.js");
+let currentTransport = "epoxy";
+let isUrlInputFocused = false;
+let currentTargetUrl = "";
+const iframe = document.getElementById("iframe");
+const urlInput = document.getElementById("url");
+const loadingOverlay = document.getElementById("loadingOverlay");
+setTimeout(() => iframe.src = "/home.html", 100);
 
-    setTimeout(() => iframe.src = "/home.html", 100);
+function extractRealUrl(iframeSrc){
+  try {
+    const urlObj = new URL(iframeSrc, window.location.origin);
+    const path = urlObj.pathname;
+    if(!path.startsWith("/scramjet/")) return null;
+    return decodeURIComponent(path.replace("/scramjet/",""));
+  } catch(e){return null;}
+}
 
-    urlInput.addEventListener("focus", () => isUrlInputFocused = true);
-    urlInput.addEventListener("blur", () => isUrlInputFocused = false);
+function showPopup(text="Page Loaded"){
+  const popup=document.getElementById("popup");
+  document.getElementById("popupText").textContent=text;
+  popup.classList.add("show");
+  setTimeout(()=>popup.classList.remove("show"),1800);
+}
 
-    function updateUrlBar() {
-      if (isUrlInputFocused) return;
-      if (currentTargetUrl) urlInput.value = currentTargetUrl;
-      else if (iframe.src.endsWith("/home.html") || iframe.src === "" || iframe.src === "about:blank")
-        urlInput.value = "";
-    }
+function updateUrlBar(){
+  if(isUrlInputFocused) return;
+  if(currentTargetUrl) urlInput.value=currentTargetUrl;
+  else urlInput.value="";
+}
 
-    document.getElementById("backBtn").addEventListener("click", () => {
-      iframe.contentWindow.history.back();
-      setTimeout(updateUrlBar, 300);
-    });
+urlInput.addEventListener("focus",()=>isUrlInputFocused=true);
+urlInput.addEventListener("blur",()=>isUrlInputFocused=false);
 
-    document.getElementById("forwardBtn").addEventListener("click", () => {
-      iframe.contentWindow.history.forward();
-      setTimeout(updateUrlBar, 300);
-    });
-
-document.getElementById("reloadBtn").addEventListener("click", () => {
+document.getElementById("reloadBtn").addEventListener("click",()=>{
   showPopup("Reloading…");
   loadingOverlay.classList.add("show");
   iframe.contentWindow.location.reload();
-
-  setTimeout(() => {
-    updateUrlBar();
-    loadingOverlay.classList.remove("show");
-  }, 800);
+  setTimeout(()=>loadingOverlay.classList.remove("show"),900);
 });
 
+document.getElementById("backBtn").addEventListener("click",()=>iframe.contentWindow.history.back());
+document.getElementById("forwardBtn").addEventListener("click",()=>iframe.contentWindow.history.forward());
+document.getElementById("homeBtn").addEventListener("click",()=>{currentTargetUrl="";urlInput.value="";iframe.src="/home.html";});
 
-    document.getElementById("homeBtn").addEventListener("click", () => {
-      currentTargetUrl = "";
-      urlInput.value = "";
-      iframe.src = "/home.html";
-    });
+function search(input){
+  let template="https://ecosia.org/search?q=%s";
+  try{return new URL(input).toString();} catch{}
+  try{let url=new URL(`http://${input}`); if(url.hostname.includes(".")) return url.toString();}catch{}
+  return template.replace("%s",encodeURIComponent(input));
+}
 
-    document.getElementById("settingsBtn").addEventListener("click", () => {
-      document.getElementById("settingsPanel").classList.toggle("show");
-    });
+document.getElementById("search").addEventListener("submit",async(e)=>{
+  e.preventDefault();
+  const input=urlInput.value.trim();
+  if(!input) return;
+  loadingOverlay.classList.add("show");
+  let fixed=search(input);
+  currentTargetUrl=fixed;
+  iframe.src=scramjet.encodeUrl(fixed);
+  setTimeout(()=>loadingOverlay.classList.remove("show"),900);
+});
 
-    document.addEventListener("click", (e) => {
-      const panel = document.getElementById("settingsPanel");
-      const settingsBtn = document.getElementById("settingsBtn");
-      if (!panel.contains(e.target) && e.target !== settingsBtn && !settingsBtn.contains(e.target))
-        panel.classList.remove("show");
-    });
-
-    document.getElementById("epoxyBtn").addEventListener("click", async () => {
-      currentTransport = "epoxy";
-      document.getElementById("epoxyBtn").classList.add("active");
-      document.getElementById("libcurlBtn").classList.remove("active");
-      await setTransport("epoxy");
-    });
-
-    document.getElementById("libcurlBtn").addEventListener("click", async () => {
-      currentTransport = "libcurl";
-      document.getElementById("libcurlBtn").classList.add("active");
-      document.getElementById("epoxyBtn").classList.remove("active");
-      await setTransport("libcurl");
-    });
-
-    function getWispUrl() {
-      const val = document.getElementById("websocket").value.trim();
-      const d = `wss://${location.host}/wisp/`;
-      return val || d;
-    }
-
-    async function setTransport(type) {
-      const wispUrl = getWispUrl();
-      if (type === "epoxy") {
-        await connection.setTransport(
-          "https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport/dist/index.mjs",
-          [{ wisp: wispUrl }]
-        );
-      } else {
-        await connection.setTransport(
-          "https://cdn.jsdelivr.net/npm/@mercuryworkshop/libcurl-transport/dist/index.mjs",
-          [{ websocket: wispUrl }]
-        );
-      }
-    }
-
-    document.getElementById("wisp").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      await setTransport(currentTransport);
-    });
-
-    function search(input) {
-      let template = "https://ecosia.org/search?q=%s";
-      try { return new URL(input).toString(); } catch {}
-      try {
-        let url = new URL(`http://${input}`);
-        if (url.hostname.includes(".")) return url.toString();
-      } catch {}
-      return template.replace("%s", encodeURIComponent(input));
-    }
-
-    setTransport("libcurl");
-
-    document.getElementById("search").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const input = urlInput.value.trim();
-      if (!input) return;
-
-      loadingOverlay.classList.add("show");
-
-      let fixed = search(input);
-      currentTargetUrl = fixed;
-
-      iframe.src = scramjet.encodeUrl(fixed);
-      urlInput.value = currentTargetUrl;
-
-      setTimeout(() => loadingOverlay.classList.remove("show"), 1000);
-    });
-
-iframe.addEventListener("load", () => {
+iframe.addEventListener("load",()=>{
   loadingOverlay.classList.remove("show");
-
-  if (iframe.src.endsWith("/home.html")) {
-    currentTargetUrl = "";
-    updateUrlBar();
-  } else {
-    updateUrlBar();
-  }
-
+  const real=extractRealUrl(iframe.src);
+  if(real){currentTargetUrl=real;urlInput.value=real;}
+  else if(iframe.src.endsWith("/home.html")){currentTargetUrl="";urlInput.value="";}
+  updateUrlBar();
   showPopup("Page Loaded ✓");
 });
 
-
-    setInterval(() => {
-      if (!isUrlInputFocused && currentTargetUrl && urlInput.value !== currentTargetUrl)
-        updateUrlBar();
-    }, 1000);
-
-    function showPopup(text = "Page Loaded") {
-  const popup = document.getElementById("popup");
-  document.getElementById("popupText").textContent = text;
-
-  popup.classList.add("show");
-
-  setTimeout(() => {
-    popup.classList.remove("show");
-  }, 1800);
-}
-  </script>
+setInterval(()=>{if(!isUrlInputFocused&&currentTargetUrl&&urlInput.value!==currentTargetUrl) updateUrlBar();},1000);
+</script>
 </body>
 </html>
