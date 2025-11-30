@@ -273,7 +273,7 @@
     document.getElementById("websocket").placeholder = `wss://${location.host}/w/`;
 
     const connection = new BareMux.BareMuxConnection("/bareworker.js");
-    let currentTransport = "libcurl";
+    let currentTransport = "epoxy";
     let isUrlInputFocused = false;
     let currentTargetUrl = "";
 
