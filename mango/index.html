@@ -209,6 +209,30 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+.popup {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #2ecc71;
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  opacity: 0;
+  transform: translateY(15px);
+  transition: opacity .3s ease, transform .3s ease;
+  z-index: 9999;
+}
+
+.popup.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
   </style>
 </head>
 <body>
@@ -249,6 +273,10 @@
     </div>
     <iframe id="iframe"></iframe>
   </div>
+<div id="popup" class="popup">
+  <i class="fas fa-check-circle"></i>
+  <span id="popupText">Loaded</span>
+</div>
 
   <script src="https://cdn.jsdelivr.net/gh/soap-phia/tinyjet@latest/tinyjet/scramjet.all.js"></script>
   <script type="module">
@@ -412,6 +440,17 @@
       if (!isUrlInputFocused && currentTargetUrl && urlInput.value !== currentTargetUrl)
         updateUrlBar();
     }, 1000);
+
+    function showPopup(text = "Page Loaded") {
+  const popup = document.getElementById("popup");
+  document.getElementById("popupText").textContent = text;
+
+  popup.classList.add("show");
+
+  setTimeout(() => {
+    popup.classList.remove("show");
+  }, 1800);
+}
   </script>
 </body>
 </html>
