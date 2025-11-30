@@ -269,7 +269,7 @@
       console.error(e);
     }
 
-    document.getElementById("websocket").placeholder = `wss://${location.host}/ww/wisp/`;
+    document.getElementById("websocket").placeholder = `wss://${location.host}/w/`;
 
     const connection = new BareMux.BareMuxConnection("/bareworker.js");
     let currentTransport = "libcurl";
