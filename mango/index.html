@@ -270,6 +270,7 @@
       console.error(e);
     }
 
+    document.getElementById("websocket").value = `wss://${location.host}/w/`;
     document.getElementById("websocket").placeholder = `wss://${location.host}/w/`;
 
     const connection = new BareMux.BareMuxConnection("/bareworker.js");
